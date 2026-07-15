@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+
+# Not committed: generated against the local (corporate) registry, so the
+# resolved URLs would leak an internal host. CI installs from the public registry.
+package-lock.json

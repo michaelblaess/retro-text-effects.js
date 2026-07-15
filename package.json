@@ -1,0 +1,37 @@
+{
+  "name": "retro-text-effects",
+  "version": "0.1.0",
+  "description": "Retro terminal text effects for the browser - decrypt, print, matrix, overflow - as a single dependency-free file.",
+  "type": "module",
+  "main": "dist/retro-text-effects.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "build": "node build.mjs"
+  },
+  "keywords": [
+    "terminal",
+    "text-effects",
+    "retro",
+    "animation",
+    "decrypt",
+    "matrix",
+    "typewriter",
+    "vanilla-js"
+  ],
+  "author": "Michael Blaess",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michaelblaess/retro-text-effects.js.git"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.14.0",
+    "globals": "^15.12.0"
+  }
+}

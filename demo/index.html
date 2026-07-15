@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>retro-text-effects.js - Showroom</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f0b;
+        --fg: #33ff66;
+        --dim: #1c7a33;
+        --panel: #050805;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2rem 1rem 4rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Cascadia Code", "Consolas", "SFMono-Regular", ui-monospace, monospace;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h1 small {
+        color: var(--dim);
+        font-size: 0.5em;
+        display: block;
+        letter-spacing: 0.2em;
+      }
+      p.lead {
+        color: var(--dim);
+      }
+      .card {
+        margin: 1.5rem 0;
+        border: 1px solid var(--dim);
+        border-radius: 6px;
+        background: var(--panel);
+        overflow: hidden;
+      }
+      .card header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--dim);
+        flex-wrap: wrap;
+      }
+      .card header strong {
+        letter-spacing: 0.08em;
+      }
+      .actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      button {
+        font: inherit;
+        font-size: 0.85rem;
+        color: var(--fg);
+        background: transparent;
+        border: 1px solid var(--dim);
+        border-radius: 4px;
+        padding: 0.25rem 0.7rem;
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--dim);
+        color: #001a06;
+      }
+      pre {
+        margin: 0;
+        padding: 1rem;
+        overflow-x: auto;
+        line-height: 1.15;
+        white-space: pre;
+      }
+      footer {
+        margin-top: 3rem;
+        color: var(--dim);
+        font-size: 0.85rem;
+      }
+      a {
+        color: var(--fg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>
+        retro-text-effects.js
+        <small>terminal text effects for the browser</small>
+      </h1>
+      <p class="lead">
+        Every effect below runs on a plain &lt;pre&gt; block by rewriting its text
+        content - no canvas, selectable text, box-drawing stays aligned.
+      </p>
+
+      <div class="card">
+        <header>
+          <strong>Repair log</strong>
+          <div class="actions">
+            <button data-fx="decrypt" data-target="#log">decrypt</button>
+            <button data-fx="print" data-target="#log">print</button>
+            <button data-fx="matrix" data-target="#log">matrix</button>
+            <button data-fx="overflow" data-target="#log">overflow</button>
+          </div>
+        </header>
+        <pre id="log">=== Link scan started ===
+14 domains loaded from blacklist
+fields: title, body, url, summary, code
+
+[staging.example.com] 3 matches in content_items
+[staging.example.com] 3 entries repaired
+[www.example.org] 1 match in content_items
+[www.example.org] 1 entry repaired
+
+=== Scan finished in 7.2s ===
+domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
+      </div>
+
+      <div class="card">
+        <header>
+          <strong>ASCII banner</strong>
+          <div class="actions">
+            <button data-fx="decrypt" data-target="#banner">decrypt</button>
+            <button data-fx="print" data-target="#banner">print</button>
+            <button data-fx="matrix" data-target="#banner">matrix</button>
+            <button data-fx="overflow" data-target="#banner">overflow</button>
+          </div>
+        </header>
+        <pre id="banner">+----------------------------------------------+
+|                                              |
+|   R E T R O   T E X T   E F F E C T S         |
+|                                              |
+|   decrypt . print . matrix . overflow        |
+|                                              |
++----------------------------------------------+</pre>
+      </div>
+
+      <footer>
+        <p>
+          Apache-2.0 -
+          <a href="https://github.com/michaelblaess/retro-text-effects.js">source on GitHub</a>
+        </p>
+      </footer>
+    </div>
+
+    <script src="../dist/retro-text-effects.js"></script>
+    <script>
+      (function () {
+        'use strict';
+        // Keep a pristine copy of each target so effects can be replayed.
+        var originals = new WeakMap();
+        var running = new WeakMap();
+
+        document.querySelectorAll('button[data-fx]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var el = document.querySelector(btn.dataset.target);
+            if (!el) {
+              return;
+            }
+            if (!originals.has(el)) {
+              originals.set(el, el.textContent);
+            }
+            var prev = running.get(el);
+            if (prev) {
+              prev.cancel();
+            }
+            el.textContent = originals.get(el);
+            var fx = window.RetroTextEffects[btn.dataset.fx];
+            running.set(el, fx(el, { speed: 1 }));
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
