@@ -48,6 +48,14 @@ These only rewrite the element's `textContent`, frame by frame:
 | `print(el, opts)` | Reveals the text in reading order with a moving print head. |
 | `matrix(el, opts)` | Each column resolves top-to-bottom behind a falling bright glyph. |
 | `overflow(el, opts)` | Rows scroll and reshuffle, then settle into order. |
+| `errorcorrect(el, opts)` | Character pairs start swapped in the wrong place and swap back one by one. |
+| `randomsequence(el, opts)` | The characters appear one after another in completely random order. |
+| `middleout(el, opts)` | The text grows from the centre of the block outward. |
+| `sweep(el, opts)` | A noisy band sweeps left to right and leaves the resolved text behind. |
+| `pour(el, opts)` | The text fills up from the bottom row like a liquid, snaking back and forth. |
+| `slide(el, opts)` | The rows slide in as blocks, alternating from the left and the right. |
+| `burn(el, opts)` | An ember front with a ragged edge eats through the block and burns the text in. |
+| `vhstape(el, opts)` | Glitch bands shift rows sideways and sprinkle noise until the tracking settles. |
 | `crt(el, opts)` | Persistent CRT *style* treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
 
 ### Canvas effects
@@ -57,13 +65,22 @@ motion, then fade out and reveal the untouched text:
 
 | Effect | What it does |
 | --- | --- |
-| `matrix2(el, opts)` | The classic falling-glyph screen: katakana rain, then reveal. |
+| `matrix2(el, opts)` | The classic falling-glyph screen: katakana rain, then reveal (canvas twin of `matrix`). |
+| `decrypt2(el, opts)` | Canvas twin of `decrypt`: the resolved text emerges bright from dimmed ciphertext. |
+| `print2(el, opts)` | Canvas twin of `print`: a glowing print head with a hot afterglow on fresh characters. |
+| `overflow2(el, opts)` | Canvas twin of `overflow`: the block spins past sub-pixel-smooth and decelerates onto the text. |
+| `beams(el, opts)` | Bright beams sweep the rows and columns, then a wipe brings the text to full brightness. |
 | `rain(el, opts)` | Every character falls from above straight into its place. |
 | `bouncyballs(el, opts)` | Characters drop in as coloured balls and bounce into position. |
+| `bubbles(el, opts)` | Every character floats down in its own bubble, swaying, and pops into place. |
 | `scattered(el, opts)` | Characters start scattered across the stage and glide to their spot. |
 | `expand(el, opts)` | The whole text bursts outward from the centre. |
+| `spray(el, opts)` | A nozzle in the corner sprays the characters onto the block in curved arcs. |
+| `swarm(el, opts)` | The characters arrive in wobbling swarms that settle area by area. |
 | `fireworks(el, opts)` | Rockets launch, explode into sparks and throw their characters to the text. |
 | `blackhole(el, opts)` | Characters spiral into a singularity, then erupt back out to the text. |
+| `rings(el, opts)` | Characters orbit on concentric spinning rings, then disperse to their positions. |
+| `unstable(el, opts)` | The text shakes, explodes towards the edges and reassembles. |
 | `laseretch(el, opts)` | A laser beam traces the text in and throws off falling sparks. |
 
 Each effect returns a small controller:
@@ -81,11 +98,13 @@ await fx.finished;  // resolves when the animation ends
 | `speed` | number | `1` | all |
 | `onDone` | function | - | all |
 | `fps` | number | `30` | text effects (canvas effects run delta-timed on rAF) |
-| `glyphs` | string | built-in pool | `decrypt`, `matrix`, `matrix2` |
+| `glyphs` | string | built-in pool | `decrypt`, `decrypt2`, `matrix`, `matrix2`, `sweep` |
 | `preserveWhitespace` | boolean | `true` | `decrypt` |
-| `cps` | number | `60` | `print` |
+| `cps` | number | `60` | `print`, `print2` |
 | `head` | string | `█` | `print` |
-| `cycles` | number | `3` | `overflow` |
+| `cycles` | number | `3` | `overflow`, `overflow2` |
+| `ratio` | number | `0.1` | `errorcorrect` (share of swapped pairs) |
+| `band` | number | `6` | `sweep` (width of the noise band) |
 | `duration` | number (ms) | `1500` | `matrix2` |
 | `fontSize` | number | `20` | `matrix2` |
 | `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt` |
@@ -93,9 +112,9 @@ await fx.finished;  // resolves when the animation ends
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
 
-The canvas effects (`rain`, `bouncyballs`, `scattered`, `expand`, `fireworks`,
-`blackhole`, `laseretch`) take `speed` and `onDone`; font, colour and character grid
+All other canvas effects take `speed` and `onDone`; font, colour and character grid
 are read from the target element so the hand-off to the real text is seamless.
+`glyphs` is also accepted by `decrypt2` and `matrix2`.
 
 ## Use offline / self-hosted
 
