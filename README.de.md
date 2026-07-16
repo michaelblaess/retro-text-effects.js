@@ -7,16 +7,22 @@
 
 ---
 
-Retro-Terminal-Texteffekte für den Browser - **decrypt**, **print**, **matrix**,
-**matrix2**, **overflow**, **crt** - als eine einzige, abhängigkeitsfreie Datei, die
-du in jede Seite einbinden kannst.
+Ein **Browser-Port von [TerminalTextEffects (TTE)](https://github.com/ChrisBuilds/terminaltexteffects)**,
+der Python-Terminal-Effekt-Bibliothek - neu gebaut in abhängigkeitsfreiem Vanilla-JavaScript,
+ausgeliefert als eine einzige Datei, die du in jede Seite einbinden kannst.
 
-Die meisten Effekte laufen auf einem simplen `<pre>`-Block, indem sie nur dessen
-Textinhalt umschreiben - kein Canvas, der Text bleibt markierbar, Box-Drawing-Zeichen
-bleiben ausgerichtet, und die Farbe wird von deinem Element geerbt (ideal für eine
-ohnehin grüne Konsole). Zwei Effekte gehen darüber hinaus: `matrix2` ist ein
-Canvas-Overlay für den klassischen Fallende-Glyphen-Look, und `crt` legt eine
-dauerhafte Scanline-/Glow-/Flicker-Behandlung über ein beliebiges Element.
+**[Live-Demo](https://michaelblaess.github.io/retro-text-effects.js/)** - jeder Effekt
+läuft direkt im Browser.
+
+Die Effekte gibt es in zwei Gruppen:
+
+- **Text-Effekte** laufen auf einem simplen `<pre>`-Block, indem sie nur dessen Textinhalt
+  umschreiben - kein Canvas, der Text bleibt markierbar, Box-Drawing-Zeichen bleiben
+  ausgerichtet, und die Farbe wird von deinem Element geerbt (ideal für eine ohnehin
+  grüne Konsole).
+- **Canvas-Effekte** legen temporär ein Canvas über das Element für freie 2D-Bewegung der
+  Zeichen (Feuerwerk, Schwarzes Loch, Regen, ...), blenden es aus und geben den
+  unveränderten Text frei.
 
 ## Schnellstart
 
@@ -34,14 +40,33 @@ du einen Effekt mit einem Element oder einem CSS-Selektor auf.
 
 ## Effekte
 
+### Text-Effekte (ohne Canvas)
+
+Diese schreiben nur den `textContent` des Elements um, Frame für Frame:
+
 | Effekt | Was er macht |
 | --- | --- |
 | `decrypt(el, opts)` | Zellen flackern durch Zufallsglyphen und rasten auf den Zieltext ein. |
 | `print(el, opts)` | Enthüllt den Text in Leserichtung mit wanderndem Druckkopf. |
-| `matrix(el, opts)` | Jede Spalte löst sich von oben nach unten hinter einer fallenden Glyphe auf (reiner Text). |
-| `matrix2(el, opts)` | Canvas-Overlay: Katakana-Regen über dem Element, blendet aus und gibt den Text frei. |
+| `matrix(el, opts)` | Jede Spalte löst sich von oben nach unten hinter einer fallenden Glyphe auf. |
 | `overflow(el, opts)` | Zeilen scrollen und mischen sich, dann ordnen sie sich. |
-| `crt(el, opts)` | Dauerhafte CRT-Behandlung - Phosphor-Glow, Scanlines, leichtes Flicker. `cancel()` entfernt sie. |
+| `crt(el, opts)` | Dauerhafte CRT-*Stil*-Behandlung - Phosphor-Glow, Scanlines, leichtes Flicker. `cancel()` entfernt sie. |
+
+### Canvas-Effekte
+
+Diese legen temporär ein Canvas über das Element, bewegen die Zeichen frei in 2D
+und blenden dann aus, um den unveränderten Text freizugeben:
+
+| Effekt | Was er macht |
+| --- | --- |
+| `matrix2(el, opts)` | Der klassische Fallende-Glyphen-Schirm: Katakana-Regen, dann Reveal. |
+| `rain(el, opts)` | Jedes Zeichen fällt von oben senkrecht an seinen Platz. |
+| `bouncyballs(el, opts)` | Zeichen fallen als bunte Bälle und springen in Position. |
+| `scattered(el, opts)` | Zeichen starten verstreut und gleiten an ihren Platz. |
+| `expand(el, opts)` | Der ganze Text bricht aus der Mitte nach außen auf. |
+| `fireworks(el, opts)` | Raketen steigen auf, explodieren in Funken und schleudern ihre Zeichen in den Text. |
+| `blackhole(el, opts)` | Zeichen spiralen in eine Singularität und brechen dann zurück in den Text aus. |
+| `laseretch(el, opts)` | Ein Laserstrahl brennt den Text ein und wirft fallende Funken ab. |
 
 Jeder Effekt gibt einen kleinen Controller zurück:
 
@@ -56,9 +81,9 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | Option | Typ | Default | Gilt für |
 | --- | --- | --- | --- |
 | `speed` | number | `1` | alle |
-| `fps` | number | `30` | alle |
 | `onDone` | function | - | alle |
-| `glyphs` | string | eingebauter Pool | `decrypt`, `matrix` |
+| `fps` | number | `30` | Text-Effekte (Canvas-Effekte laufen delta-getaktet auf rAF) |
+| `glyphs` | string | eingebauter Pool | `decrypt`, `matrix`, `matrix2` |
 | `preserveWhitespace` | boolean | `true` | `decrypt` |
 | `cps` | number | `60` | `print` |
 | `head` | string | `█` | `print` |
@@ -69,6 +94,10 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | `scanlineOpacity` | number | `0.15` | `crt` |
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
+
+Die Canvas-Effekte (`rain`, `bouncyballs`, `scattered`, `expand`, `fireworks`,
+`blackhole`, `laseretch`) nehmen `speed` und `onDone`; Schrift, Farbe und Zeichenraster
+werden vom Ziel-Element gelesen, damit die Übergabe an den echten Text nahtlos ist.
 
 ## Offline / self-hosted einsetzen
 
@@ -100,6 +129,6 @@ npm run build   # -> dist/retro-text-effects.js + dist/retro-text-effects.min.js
 
 ## Lizenz
 
-[Apache-2.0](LICENSE). Inspiriert von der Terminal-Bibliothek
-[TerminalTextEffects](https://github.com/ChrisBuilds/terminaltexteffects) - dies ist
-eine eigenständige Neuimplementierung für den Browser, kein Port ihres Codes.
+[Apache-2.0](LICENSE). Dies ist ein Browser-Port von
+[TerminalTextEffects](https://github.com/ChrisBuilds/terminaltexteffects) (Python, MIT) -
+die Effekte wurden für das DOM von Grund auf neu gebaut, kein Code wurde kopiert.

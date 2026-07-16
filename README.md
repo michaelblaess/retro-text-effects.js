@@ -7,15 +7,20 @@
 
 ---
 
-Retro terminal text effects for the browser - **decrypt**, **print**, **matrix**,
-**matrix2**, **overflow**, **crt** - shipped as a single, dependency-free file you
-can drop into any page.
+A **browser port of [TerminalTextEffects (TTE)](https://github.com/ChrisBuilds/terminaltexteffects)**,
+the Python terminal-effects library - rebuilt in dependency-free vanilla JavaScript and
+shipped as a single file you can drop into any page.
 
-Most effects run on a plain `<pre>` block by rewriting its text content - no canvas,
-so the text stays selectable, box-drawing characters stay aligned, and the colour is
-inherited from your element (perfect for an already-green console). Two effects step
-outside that: `matrix2` is a canvas overlay for the classic falling-glyph look, and
-`crt` lays a persistent scanline/glow/flicker treatment over any element.
+**[Live demo](https://michaelblaess.github.io/retro-text-effects.js/)** - every effect runs
+right in your browser.
+
+The effects come in two groups:
+
+- **Text effects** run on a plain `<pre>` block by rewriting its text content - no canvas,
+  the text stays selectable, box-drawing characters stay aligned, and the colour is inherited
+  from your element (perfect for an already-green console).
+- **Canvas effects** lay a temporary canvas over the element for free 2D character motion
+  (fireworks, black hole, rain, ...), then fade it out and reveal the untouched text below.
 
 ## Quick start
 
@@ -33,14 +38,33 @@ then call an effect with an element or a CSS selector.
 
 ## Effects
 
+### Text effects (no canvas)
+
+These only rewrite the element's `textContent`, frame by frame:
+
 | Effect | What it does |
 | --- | --- |
 | `decrypt(el, opts)` | Cells flicker through random glyphs, then lock onto the final text. |
 | `print(el, opts)` | Reveals the text in reading order with a moving print head. |
-| `matrix(el, opts)` | Each column resolves top-to-bottom behind a falling bright glyph (pure text). |
-| `matrix2(el, opts)` | Canvas overlay: katakana rain over the element, fading out to reveal the text. |
+| `matrix(el, opts)` | Each column resolves top-to-bottom behind a falling bright glyph. |
 | `overflow(el, opts)` | Rows scroll and reshuffle, then settle into order. |
-| `crt(el, opts)` | Persistent CRT treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
+| `crt(el, opts)` | Persistent CRT *style* treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
+
+### Canvas effects
+
+These lay a temporary canvas over the element, animate the characters in free 2D
+motion, then fade out and reveal the untouched text:
+
+| Effect | What it does |
+| --- | --- |
+| `matrix2(el, opts)` | The classic falling-glyph screen: katakana rain, then reveal. |
+| `rain(el, opts)` | Every character falls from above straight into its place. |
+| `bouncyballs(el, opts)` | Characters drop in as coloured balls and bounce into position. |
+| `scattered(el, opts)` | Characters start scattered across the stage and glide to their spot. |
+| `expand(el, opts)` | The whole text bursts outward from the centre. |
+| `fireworks(el, opts)` | Rockets launch, explode into sparks and throw their characters to the text. |
+| `blackhole(el, opts)` | Characters spiral into a singularity, then erupt back out to the text. |
+| `laseretch(el, opts)` | A laser beam traces the text in and throws off falling sparks. |
 
 Each effect returns a small controller:
 
@@ -55,9 +79,9 @@ await fx.finished;  // resolves when the animation ends
 | Option | Type | Default | Applies to |
 | --- | --- | --- | --- |
 | `speed` | number | `1` | all |
-| `fps` | number | `30` | all |
 | `onDone` | function | - | all |
-| `glyphs` | string | built-in pool | `decrypt`, `matrix` |
+| `fps` | number | `30` | text effects (canvas effects run delta-timed on rAF) |
+| `glyphs` | string | built-in pool | `decrypt`, `matrix`, `matrix2` |
 | `preserveWhitespace` | boolean | `true` | `decrypt` |
 | `cps` | number | `60` | `print` |
 | `head` | string | `█` | `print` |
@@ -68,6 +92,10 @@ await fx.finished;  // resolves when the animation ends
 | `scanlineOpacity` | number | `0.15` | `crt` |
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
+
+The canvas effects (`rain`, `bouncyballs`, `scattered`, `expand`, `fireworks`,
+`blackhole`, `laseretch`) take `speed` and `onDone`; font, colour and character grid
+are read from the target element so the hand-off to the real text is seamless.
 
 ## Use offline / self-hosted
 
@@ -98,6 +126,6 @@ Open `demo/index.html` in a browser to see the showroom.
 
 ## License
 
-[Apache-2.0](LICENSE). Inspired by the terminal library
-[TerminalTextEffects](https://github.com/ChrisBuilds/terminaltexteffects) - this is an
-independent reimplementation for the browser, not a port of its code.
+[Apache-2.0](LICENSE). This is a browser port of
+[TerminalTextEffects](https://github.com/ChrisBuilds/terminaltexteffects) (Python, MIT) -
+the effects were rebuilt from scratch for the DOM, no code was copied.

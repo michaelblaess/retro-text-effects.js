@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>retro-text-effects.js — Retro terminal text effects for the browser</title>
-  <meta name="description" content="Zero-dependency retro terminal text effects for the browser: decrypt, print, matrix and overflow, in one self-contained file.">
+  <title>retro-text-effects.js — Browser port of TerminalTextEffects</title>
+  <meta name="description" content="Browser port of TerminalTextEffects (TTE): retro terminal text and canvas effects - decrypt, fireworks, blackhole, matrix and more - in one zero-dependency file.">
   <link rel="stylesheet" href="css/precision.css">
   <style>
     /* Page-specific: live terminal + effect controls */
@@ -19,6 +19,7 @@
     }
     .fx-btn:hover { color: var(--text-primary); border-color: var(--accent); }
     .fx-btn.active { color: var(--text-primary); border-color: var(--accent); background: var(--accent-muted); }
+    .fx-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); align-self: center; min-width: 52px; }
     .term {
       margin: 0; padding: 22px 24px; border-radius: var(--radius-lg);
       background: #000; color: #33ff33; overflow-x: auto;
@@ -58,9 +59,9 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.1.0</div>
+    <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.3.0</div>
     <h1>retro-text-effects<span class="accent">.js</span></h1>
-    <p class="hero-description">Retro terminal text effects for the browser - decrypt, print, matrix and overflow. Vanilla JavaScript, no dependencies, no external requests, shipped as one self-contained file you can drop into any page.</p>
+    <p class="hero-description">A <strong>browser port of <a href="https://github.com/ChrisBuilds/terminaltexteffects" style="color: var(--accent);">TerminalTextEffects (TTE)</a></strong>, the Python terminal-effects library - rebuilt in vanilla JavaScript. Thirteen text and canvas effects, no dependencies, no external requests, one self-contained file you can drop into any page.</p>
     <div class="hero-actions">
       <a href="#demo" class="btn btn-primary">See it live</a>
       <a href="https://github.com/michaelblaess/retro-text-effects.js" class="btn btn-secondary">
@@ -80,12 +81,23 @@
   <div class="demo">
     <div class="demo-block">
       <div class="fx-bar">
+        <span class="fx-label">text</span>
         <button class="fx-btn" onclick="runFx('decrypt', '#demo-banner')">decrypt</button>
         <button class="fx-btn" onclick="runFx('print', '#demo-banner')">print</button>
         <button class="fx-btn" onclick="runFx('matrix', '#demo-banner')">matrix</button>
-        <button class="fx-btn" onclick="runFx('matrix2', '#demo-banner')">matrix2</button>
         <button class="fx-btn" onclick="runFx('overflow', '#demo-banner')">overflow</button>
         <button class="fx-btn" onclick="toggleCrt('#demo-banner', this)">crt</button>
+      </div>
+      <div class="fx-bar">
+        <span class="fx-label">canvas</span>
+        <button class="fx-btn" onclick="runFx('matrix2', '#demo-banner')">matrix2</button>
+        <button class="fx-btn" onclick="runFx('rain', '#demo-banner')">rain</button>
+        <button class="fx-btn" onclick="runFx('bouncyballs', '#demo-banner')">bouncyballs</button>
+        <button class="fx-btn" onclick="runFx('scattered', '#demo-banner')">scattered</button>
+        <button class="fx-btn" onclick="runFx('expand', '#demo-banner')">expand</button>
+        <button class="fx-btn" onclick="runFx('fireworks', '#demo-banner')">fireworks</button>
+        <button class="fx-btn" onclick="runFx('blackhole', '#demo-banner')">blackhole</button>
+        <button class="fx-btn" onclick="runFx('laseretch', '#demo-banner')">laseretch</button>
       </div>
       <pre id="demo-banner" class="term banner">██████  ███████ ████████ ██████   ██████
 ██   ██ ██         ██    ██   ██ ██    ██
@@ -96,12 +108,23 @@
 
     <div class="demo-block">
       <div class="fx-bar">
+        <span class="fx-label">text</span>
         <button class="fx-btn" onclick="runFx('decrypt', '#demo-log')">decrypt</button>
         <button class="fx-btn" onclick="runFx('print', '#demo-log')">print</button>
         <button class="fx-btn" onclick="runFx('matrix', '#demo-log')">matrix</button>
-        <button class="fx-btn" onclick="runFx('matrix2', '#demo-log')">matrix2</button>
         <button class="fx-btn" onclick="runFx('overflow', '#demo-log')">overflow</button>
         <button class="fx-btn" onclick="toggleCrt('#demo-log', this)">crt</button>
+      </div>
+      <div class="fx-bar">
+        <span class="fx-label">canvas</span>
+        <button class="fx-btn" onclick="runFx('matrix2', '#demo-log')">matrix2</button>
+        <button class="fx-btn" onclick="runFx('rain', '#demo-log')">rain</button>
+        <button class="fx-btn" onclick="runFx('bouncyballs', '#demo-log')">bouncyballs</button>
+        <button class="fx-btn" onclick="runFx('scattered', '#demo-log')">scattered</button>
+        <button class="fx-btn" onclick="runFx('expand', '#demo-log')">expand</button>
+        <button class="fx-btn" onclick="runFx('fireworks', '#demo-log')">fireworks</button>
+        <button class="fx-btn" onclick="runFx('blackhole', '#demo-log')">blackhole</button>
+        <button class="fx-btn" onclick="runFx('laseretch', '#demo-log')">laseretch</button>
       </div>
       <pre id="demo-log" class="term">=== Link scan started ===
 14 domains loaded from blacklist
@@ -122,7 +145,10 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <!-- EFFECTS -->
   <section class="section" id="effects">
     <div class="section-label">Effects</div>
-    <h2 class="section-title">Six effects</h2>
+    <h2 class="section-title">Thirteen effects, two flavours</h2>
+    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text.</p>
+
+    <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 16px;">Text effects (no canvas)</h3>
     <div class="feature-grid">
       <div class="feature-card">
         <div class="feature-icon">🔓</div>
@@ -137,12 +163,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <div class="feature-card">
         <div class="feature-icon">🟩</div>
         <h3>matrix</h3>
-        <p>Columns rain down from the top, each settling row by row until the message stands still. Pure text, no canvas.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🌧️</div>
-        <h3>matrix2</h3>
-        <p>The classic falling-glyph screen as a canvas overlay: katakana rain over the element, fading out to reveal the text. The one effect that uses a canvas.</p>
+        <p>Columns rain down from the top, each settling row by row until the message stands still.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔀</div>
@@ -153,6 +174,50 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
         <div class="feature-icon">📺</div>
         <h3>crt</h3>
         <p>A persistent retro-monitor treatment: phosphor glow, subtle scanlines and a faint flicker. Toggle it on, cancel() to remove it.</p>
+      </div>
+    </div>
+
+    <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 16px;">Canvas effects</h3>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🌧️</div>
+        <h3>matrix2</h3>
+        <p>The classic falling-glyph screen: katakana rain over the element, fading out to reveal the text.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💧</div>
+        <h3>rain</h3>
+        <p>Every character falls from above straight down into its place, staggered like a steady drizzle.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏀</div>
+        <h3>bouncyballs</h3>
+        <p>Characters drop in as coloured balls, bounce a few times on their landing row and settle into the glyph.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <h3>scattered</h3>
+        <p>All characters start scattered across the stage and glide, eased and staggered, to their final spot.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💥</div>
+        <h3>expand</h3>
+        <p>The whole text bursts outward from the centre, every character easing into position.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎆</div>
+        <h3>fireworks</h3>
+        <p>Rockets launch from the bottom, explode into sparks and throw their characters to the text, volley by volley.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🕳️</div>
+        <h3>blackhole</h3>
+        <p>Characters spiral into a singularity, vanish - then a shockwave throws them back out into the text.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔴</div>
+        <h3>laseretch</h3>
+        <p>A laser beam from the corner traces the text in, character by character, throwing off falling sparks.</p>
       </div>
     </div>
   </section>
@@ -168,7 +233,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
 &lt;script&gt;
   RetroTextEffects.decrypt('#log');
   RetroTextEffects.print('#banner', { cps: 80 });
-  RetroTextEffects.matrix2('#log', { duration: 1500 });
+  RetroTextEffects.fireworks('#log', { speed: 1.2 });
   const screen = RetroTextEffects.crt('#log');  // screen.cancel() removes it
 &lt;/script&gt;</pre>
 
@@ -177,9 +242,9 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
         <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Effects</th></tr></thead>
         <tbody>
           <tr><td><code>speed</code></td><td>number</td><td><code>1</code></td><td>all</td></tr>
-          <tr><td><code>fps</code></td><td>number</td><td><code>30</code></td><td>all</td></tr>
           <tr><td><code>onDone</code></td><td>function</td><td>-</td><td>all</td></tr>
-          <tr><td><code>glyphs</code></td><td>string</td><td>built-in pool</td><td>decrypt, matrix</td></tr>
+          <tr><td><code>fps</code></td><td>number</td><td><code>30</code></td><td>text effects</td></tr>
+          <tr><td><code>glyphs</code></td><td>string</td><td>built-in pool</td><td>decrypt, matrix, matrix2</td></tr>
           <tr><td><code>preserveWhitespace</code></td><td>boolean</td><td><code>true</code></td><td>decrypt</td></tr>
           <tr><td><code>cps</code></td><td>number</td><td><code>60</code></td><td>print</td></tr>
           <tr><td><code>head</code></td><td>string</td><td><code>█</code></td><td>print</td></tr>
@@ -209,7 +274,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <span class="stack-badge">Zero dependencies</span>
       <span class="stack-badge">esbuild</span>
       <span class="stack-badge">Single file</span>
-      <span class="stack-badge">~7 KB minified</span>
+      <span class="stack-badge">~14 KB minified</span>
     </div>
   </section>
 

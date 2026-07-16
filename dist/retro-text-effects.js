@@ -21,12 +21,19 @@ var RetroTextEffects = (() => {
   // src/index.js
   var index_exports = {};
   __export(index_exports, {
+    blackhole: () => blackhole,
+    bouncyballs: () => bouncyballs,
     crt: () => crt,
     decrypt: () => decrypt,
+    expand: () => expand,
+    fireworks: () => fireworks,
+    laseretch: () => laseretch,
     matrix: () => matrix,
     matrix2: () => matrix2,
     overflow: () => overflow,
     print: () => print,
+    rain: () => rain,
+    scattered: () => scattered,
     version: () => version
   });
 
@@ -285,6 +292,115 @@ var RetroTextEffects = (() => {
     );
   }
 
+  // src/effects/overflow.js
+  function overflow(target, options = {}) {
+    const element = resolveTarget(target);
+    const finalText = getText(element);
+    const speed = options.speed || 1;
+    const cycles = options.cycles || 3;
+    const lines = toLines(finalText);
+    const height = Math.max(1, lines.length);
+    const totalTicks = Math.max(1, Math.round(height * cycles / speed));
+    let tick = 0;
+    let offset = 0;
+    const render = () => lines.map((_, i) => lines[(i + offset) % lines.length]).join("\n");
+    return createLoop(
+      () => {
+        tick += 1;
+        offset = (offset + 1) % height;
+        if (tick % height === 0) {
+          offset = randInt(0, height - 1);
+        }
+        if (tick >= totalTicks) {
+          setText(element, finalText);
+          if (options.onDone) {
+            options.onDone();
+          }
+          return false;
+        }
+        setText(element, render());
+        return true;
+      },
+      { fps: options.fps || 30 }
+    );
+  }
+
+  // src/effects/crt.js
+  var STYLE_ID = "rte-crt-style";
+  function ensureFlickerStyle() {
+    if (document.getElementById(STYLE_ID)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
+    document.head.appendChild(style);
+  }
+  function toGlow(color, alpha) {
+    const hex = color.replace("#", "");
+    let r;
+    let g;
+    let b;
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+    } else {
+      return color;
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  function crt(target, options = {}) {
+    const host = resolveTarget(target);
+    const color = options.color || "#33ff33";
+    const scanlineOpacity = options.scanlineOpacity === void 0 ? 0.15 : options.scanlineOpacity;
+    const glow = options.glow !== false;
+    const flicker = options.flicker !== false;
+    ensureFlickerStyle();
+    const previous = {
+      position: host.style.position,
+      textShadow: host.style.textShadow,
+      animation: host.style.animation
+    };
+    if (getComputedStyle(host).position === "static") {
+      host.style.position = "relative";
+    }
+    if (glow) {
+      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
+    }
+    if (flicker) {
+      host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
+    }
+    const scanlines = document.createElement("div");
+    scanlines.style.cssText = `position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
+    host.appendChild(scanlines);
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        if (scanlines.parentNode) {
+          scanlines.parentNode.removeChild(scanlines);
+        }
+        host.style.position = previous.position;
+        host.style.textShadow = previous.textShadow;
+        host.style.animation = previous.animation;
+        resolveFinished();
+      }
+    };
+  }
+
   // src/effects/matrix2.js
   var KATAKANA = "\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789ABCDEF";
   function matrix2(target, options = {}) {
@@ -395,97 +511,144 @@ var RetroTextEffects = (() => {
     };
   }
 
-  // src/effects/overflow.js
-  function overflow(target, options = {}) {
-    const element = resolveTarget(target);
-    const finalText = getText(element);
-    const speed = options.speed || 1;
-    const cycles = options.cycles || 3;
-    const lines = toLines(finalText);
-    const height = Math.max(1, lines.length);
-    const totalTicks = Math.max(1, Math.round(height * cycles / speed));
-    let tick = 0;
-    let offset = 0;
-    const render = () => lines.map((_, i) => lines[(i + offset) % lines.length]).join("\n");
-    return createLoop(
-      () => {
-        tick += 1;
-        offset = (offset + 1) % height;
-        if (tick % height === 0) {
-          offset = randInt(0, height - 1);
-        }
-        if (tick >= totalTicks) {
-          setText(element, finalText);
-          if (options.onDone) {
-            options.onDone();
-          }
-          return false;
-        }
-        setText(element, render());
-        return true;
-      },
-      { fps: options.fps || 30 }
-    );
+  // src/core/canvas.js
+  var SPARK_COLORS = ["#ff5555", "#ffd700", "#66aaff", "#ff66cc", "#66dd88"];
+  function easeOutCubic(t) {
+    const inv = 1 - t;
+    return 1 - inv * inv * inv;
   }
-
-  // src/effects/crt.js
-  var STYLE_ID = "rte-crt-style";
-  function ensureFlickerStyle() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
+  function clamp01(t) {
+    if (t < 0) {
+      return 0;
     }
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
-    document.head.appendChild(style);
-  }
-  function toGlow(color, alpha) {
-    const hex = color.replace("#", "");
-    let r;
-    let g;
-    let b;
-    if (hex.length === 3) {
-      r = parseInt(hex[0] + hex[0], 16);
-      g = parseInt(hex[1] + hex[1], 16);
-      b = parseInt(hex[2] + hex[2], 16);
-    } else if (hex.length === 6) {
-      r = parseInt(hex.slice(0, 2), 16);
-      g = parseInt(hex.slice(2, 4), 16);
-      b = parseInt(hex.slice(4, 6), 16);
-    } else {
-      return color;
+    if (t > 1) {
+      return 1;
     }
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return t;
   }
-  function crt(target, options = {}) {
+  function createStage(target) {
     const host = resolveTarget(target);
-    const color = options.color || "#33ff33";
-    const scanlineOpacity = options.scanlineOpacity === void 0 ? 0.15 : options.scanlineOpacity;
-    const glow = options.glow !== false;
-    const flicker = options.flicker !== false;
-    ensureFlickerStyle();
-    const previous = {
-      position: host.style.position,
-      textShadow: host.style.textShadow,
-      animation: host.style.animation
+    const finalText = getText(host);
+    const parent = host.parentNode || host;
+    const previousPosition = parent.style.position;
+    if (getComputedStyle(parent).position === "static") {
+      parent.style.position = "relative";
+    }
+    const style = getComputedStyle(host);
+    const fontSize = parseFloat(style.fontSize) || 16;
+    const lineHeightRaw = parseFloat(style.lineHeight);
+    const cellH = Number.isNaN(lineHeightRaw) ? Math.round(fontSize * 1.4) : lineHeightRaw;
+    const padX = parseFloat(style.paddingLeft) || 0;
+    const padY = parseFloat(style.paddingTop) || 0;
+    const font = `${fontSize}px ${style.fontFamily}`;
+    const color = style.color || "#33ff33";
+    const width = Math.max(1, host.offsetWidth);
+    const height = Math.max(1, host.offsetHeight);
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * dpr));
+    canvas.height = Math.max(1, Math.round(height * dpr));
+    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    parent.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    ctx.font = font;
+    ctx.textBaseline = "top";
+    const cellW = ctx.measureText("M").width || fontSize * 0.6;
+    const targets = [];
+    const rows = toLines(finalText);
+    for (let r = 0; r < rows.length; r += 1) {
+      const cells = toCells(rows[r]);
+      for (let c = 0; c < cells.length; c += 1) {
+        if (!isBlank(cells[c])) {
+          targets.push({ ch: cells[c], x: padX + c * cellW, y: padY + r * cellH });
+        }
+      }
+    }
+    return {
+      ctx,
+      canvas,
+      width,
+      height,
+      cellW,
+      cellH,
+      color,
+      targets,
+      clear(alpha) {
+        ctx.fillStyle = alpha === void 0 ? "#000000" : `rgba(0, 0, 0, ${alpha})`;
+        ctx.fillRect(0, 0, width, height);
+      },
+      drawChar(ch, x, y, fill) {
+        ctx.font = font;
+        ctx.textBaseline = "top";
+        ctx.fillStyle = fill || color;
+        ctx.fillText(ch, x, y);
+      },
+      remove() {
+        if (canvas.parentNode) {
+          canvas.parentNode.removeChild(canvas);
+        }
+        parent.style.position = previousPosition;
+      }
     };
-    if (getComputedStyle(host).position === "static") {
-      host.style.position = "relative";
-    }
-    if (glow) {
-      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
-    }
-    if (flicker) {
-      host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
-    }
-    const scanlines = document.createElement("div");
-    scanlines.style.cssText = `position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
-    host.appendChild(scanlines);
+  }
+  function animateStage(target, options, setup) {
+    const stage = createStage(target);
+    const opts = options || {};
+    let raf = null;
     let cancelled = false;
     let resolveFinished;
     const finished = new Promise((resolve) => {
       resolveFinished = resolve;
     });
+    function finish() {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      stage.remove();
+      if (opts.onDone) {
+        opts.onDone();
+      }
+      resolveFinished();
+    }
+    function fadeOut() {
+      let opacity = 1;
+      function fade() {
+        if (cancelled) {
+          return;
+        }
+        opacity -= 0.1;
+        if (opacity <= 0) {
+          finish();
+          return;
+        }
+        stage.canvas.style.opacity = String(opacity);
+        raf = requestAnimationFrame(fade);
+      }
+      fade();
+    }
+    stage.clear();
+    const frame = setup(stage);
+    let start = 0;
+    let last = 0;
+    function tick(now) {
+      if (cancelled) {
+        return;
+      }
+      if (start === 0) {
+        start = now;
+        last = now;
+      }
+      const dt = Math.min(64, now - last);
+      last = now;
+      if (frame(now - start, dt)) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        fadeOut();
+      }
+    }
+    raf = requestAnimationFrame(tick);
     return {
       finished,
       cancel() {
@@ -493,18 +656,349 @@ var RetroTextEffects = (() => {
           return;
         }
         cancelled = true;
-        if (scanlines.parentNode) {
-          scanlines.parentNode.removeChild(scanlines);
+        if (raf !== null) {
+          cancelAnimationFrame(raf);
         }
-        host.style.position = previous.position;
-        host.style.textShadow = previous.textShadow;
-        host.style.animation = previous.animation;
+        stage.remove();
         resolveFinished();
       }
     };
   }
 
+  // src/effects/rain.js
+  function rain(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const drops = stage.targets.map((t) => ({
+        t,
+        y: t.y - stage.height * (0.15 + Math.random() * 0.85) - randInt(0, 200),
+        v: (140 + Math.random() * 260) * speed,
+        delay: randInt(0, Math.round(1400 / speed)),
+        landed: false
+      }));
+      return (elapsed, dt) => {
+        stage.clear();
+        let remaining = 0;
+        for (const drop of drops) {
+          if (!drop.landed && elapsed >= drop.delay) {
+            drop.y += drop.v * dt / 1e3;
+            if (drop.y >= drop.t.y) {
+              drop.y = drop.t.y;
+              drop.landed = true;
+            }
+          }
+          if (drop.landed) {
+            stage.drawChar(drop.t.ch, drop.t.x, drop.t.y);
+          } else {
+            remaining += 1;
+            if (elapsed >= drop.delay) {
+              stage.drawChar(drop.t.ch, drop.t.x, drop.y);
+            }
+          }
+        }
+        return remaining > 0;
+      };
+    });
+  }
+
+  // src/effects/bouncyballs.js
+  function bouncyballs(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const gravity = 2400;
+      const balls = stage.targets.map((t) => ({
+        t,
+        y: t.y - stage.height * (0.2 + Math.random() * 0.6) - randInt(20, 160),
+        vy: 0,
+        delay: randInt(0, Math.round(1600 / speed)),
+        color: pick(SPARK_COLORS),
+        settled: false
+      }));
+      return (elapsed, dt) => {
+        stage.clear();
+        const dtS = dt * speed / 1e3;
+        let remaining = 0;
+        for (const ball of balls) {
+          if (!ball.settled && elapsed >= ball.delay) {
+            ball.vy += gravity * dtS;
+            ball.y += ball.vy * dtS;
+            if (ball.y >= ball.t.y) {
+              ball.y = ball.t.y;
+              ball.vy = -ball.vy * 0.5;
+              if (Math.abs(ball.vy) < 120) {
+                ball.settled = true;
+              }
+            }
+          }
+          if (ball.settled) {
+            stage.drawChar(ball.t.ch, ball.t.x, ball.t.y);
+          } else {
+            remaining += 1;
+            if (elapsed >= ball.delay) {
+              stage.drawChar("\u25CF", ball.t.x, ball.y, ball.color);
+            }
+          }
+        }
+        return remaining > 0;
+      };
+    });
+  }
+
+  // src/effects/scattered.js
+  function scattered(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const parts = stage.targets.map((t) => ({
+        t,
+        sx: Math.random() * stage.width,
+        sy: Math.random() * stage.height,
+        delay: randInt(0, Math.round(900 / speed)),
+        duration: (700 + Math.random() * 700) / speed
+      }));
+      return (elapsed) => {
+        stage.clear();
+        let moving = 0;
+        for (const part of parts) {
+          const progress = clamp01((elapsed - part.delay) / part.duration);
+          if (progress < 1) {
+            moving += 1;
+          }
+          const eased = easeOutCubic(progress);
+          const x = part.sx + (part.t.x - part.sx) * eased;
+          const y = part.sy + (part.t.y - part.sy) * eased;
+          stage.drawChar(part.t.ch, x, y);
+        }
+        return moving > 0;
+      };
+    });
+  }
+
+  // src/effects/expand.js
+  function expand(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const cx = stage.width / 2;
+      const cy = stage.height / 2;
+      const parts = stage.targets.map((t) => ({
+        t,
+        delay: randInt(0, Math.round(300 / speed)),
+        duration: (500 + Math.random() * 500) / speed
+      }));
+      return (elapsed) => {
+        stage.clear();
+        let moving = 0;
+        for (const part of parts) {
+          const progress = clamp01((elapsed - part.delay) / part.duration);
+          if (progress < 1) {
+            moving += 1;
+          }
+          const eased = easeOutCubic(progress);
+          const x = cx + (part.t.x - cx) * eased;
+          const y = cy + (part.t.y - cy) * eased;
+          stage.drawChar(part.t.ch, x, y);
+        }
+        return moving > 0;
+      };
+    });
+  }
+
+  // src/effects/fireworks.js
+  var VOLLEY_SIZE = 24;
+  function fireworks(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const shuffled = stage.targets.slice().sort(() => Math.random() - 0.5);
+      const shows = [];
+      for (let i = 0; i < shuffled.length; i += VOLLEY_SIZE) {
+        const index = shows.length;
+        shows.push({
+          chars: shuffled.slice(i, i + VOLLEY_SIZE),
+          burstX: stage.width * (0.15 + Math.random() * 0.7),
+          burstY: stage.height * (0.1 + Math.random() * 0.35),
+          launchAt: index * 460 / speed,
+          riseDuration: 480 / speed,
+          flyDuration: 900 / speed,
+          sparkDuration: 650 / speed,
+          color: pick(SPARK_COLORS),
+          sparks: Array.from({ length: 18 }, () => ({
+            angle: Math.random() * Math.PI * 2,
+            range: 30 + Math.random() * 70
+          }))
+        });
+      }
+      return (elapsed) => {
+        stage.clear(0.35);
+        let active = 0;
+        for (const show of shows) {
+          const local = elapsed - show.launchAt;
+          const total = show.riseDuration + Math.max(show.flyDuration, show.sparkDuration);
+          if (local < total) {
+            active += 1;
+          }
+          if (local < 0) {
+            continue;
+          }
+          if (local < show.riseDuration) {
+            const rise = easeOutCubic(local / show.riseDuration);
+            const y = stage.height - (stage.height - show.burstY) * rise;
+            stage.ctx.fillStyle = "#ffffff";
+            stage.ctx.fillRect(show.burstX - 1.5, y - 1.5, 3, 6);
+            continue;
+          }
+          const sinceBurst = local - show.riseDuration;
+          const sparkProgress = clamp01(sinceBurst / show.sparkDuration);
+          if (sparkProgress < 1) {
+            const reach = easeOutCubic(sparkProgress);
+            stage.ctx.fillStyle = show.color;
+            stage.ctx.globalAlpha = 1 - sparkProgress;
+            for (const spark of show.sparks) {
+              const x = show.burstX + Math.cos(spark.angle) * spark.range * reach;
+              const y = show.burstY + Math.sin(spark.angle) * spark.range * reach + sparkProgress * 24;
+              stage.ctx.fillRect(x, y, 2, 2);
+            }
+            stage.ctx.globalAlpha = 1;
+          }
+          const fly = clamp01(sinceBurst / show.flyDuration);
+          const eased = easeOutCubic(fly);
+          for (const t of show.chars) {
+            const x = show.burstX + (t.x - show.burstX) * eased;
+            const y = show.burstY + (t.y - show.burstY) * eased;
+            stage.drawChar(t.ch, x, y, fly < 1 ? show.color : stage.color);
+          }
+        }
+        return active > 0;
+      };
+    });
+  }
+
+  // src/effects/blackhole.js
+  function blackhole(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const cx = stage.width / 2;
+      const cy = stage.height / 2;
+      const maxRadius = Math.hypot(stage.width, stage.height) / 2;
+      const explodeDuration = 900 / speed;
+      const parts = stage.targets.map((t) => ({
+        t,
+        angle: Math.random() * Math.PI * 2,
+        radius: maxRadius * (0.35 + Math.random() * 0.65),
+        spin: 0.9 + Math.random() * 1.7,
+        pull: 70 + Math.random() * 140,
+        consumed: false
+      }));
+      let exploding = false;
+      let explodeStart = 0;
+      return (elapsed, dt) => {
+        stage.clear(0.3);
+        const dtS = dt * speed / 1e3;
+        if (!exploding) {
+          stage.ctx.fillStyle = "#e0d0ff";
+          stage.ctx.beginPath();
+          stage.ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+          stage.ctx.fill();
+          let alive = 0;
+          for (const part of parts) {
+            if (part.consumed) {
+              continue;
+            }
+            part.angle += part.spin * dtS * (1 + 40 / (part.radius + 20));
+            part.radius -= part.pull * dtS * (1 + 90 / (part.radius + 30));
+            if (part.radius <= 6) {
+              part.consumed = true;
+              continue;
+            }
+            alive += 1;
+            const x = cx + Math.cos(part.angle) * part.radius;
+            const y = cy + Math.sin(part.angle) * part.radius * 0.6;
+            stage.drawChar(part.t.ch, x, y);
+          }
+          if (alive === 0) {
+            exploding = true;
+            explodeStart = elapsed;
+          }
+          return true;
+        }
+        const progress = clamp01((elapsed - explodeStart) / explodeDuration);
+        const eased = easeOutCubic(progress);
+        if (progress < 1) {
+          stage.ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 * (1 - progress)})`;
+          stage.ctx.lineWidth = 2;
+          stage.ctx.beginPath();
+          stage.ctx.arc(cx, cy, eased * maxRadius, 0, Math.PI * 2);
+          stage.ctx.stroke();
+        }
+        for (const part of parts) {
+          const x = cx + (part.t.x - cx) * eased;
+          const y = cy + (part.t.y - cy) * eased;
+          stage.drawChar(part.t.ch, x, y);
+        }
+        return progress < 1;
+      };
+    });
+  }
+
+  // src/effects/laseretch.js
+  function laseretch(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const cells = stage.targets;
+      const totalDuration = 2400 / speed;
+      const sparks = [];
+      let etchedBefore = 0;
+      return (elapsed, dt) => {
+        stage.clear();
+        const dtS = dt / 1e3;
+        const etched = Math.min(cells.length, Math.floor(elapsed / totalDuration * cells.length));
+        for (let i = 0; i < etched; i += 1) {
+          stage.drawChar(cells[i].ch, cells[i].x, cells[i].y);
+        }
+        if (etched < cells.length) {
+          const head = cells[etched];
+          stage.ctx.strokeStyle = "rgba(255, 64, 64, 0.55)";
+          stage.ctx.lineWidth = 1.5;
+          stage.ctx.beginPath();
+          stage.ctx.moveTo(stage.width - 4, -4);
+          stage.ctx.lineTo(head.x + stage.cellW / 2, head.y + stage.cellH / 2);
+          stage.ctx.stroke();
+          stage.ctx.fillStyle = "#ffffff";
+          stage.ctx.beginPath();
+          stage.ctx.arc(head.x + stage.cellW / 2, head.y + stage.cellH / 2, 2.5, 0, Math.PI * 2);
+          stage.ctx.fill();
+          for (let i = etchedBefore; i < etched; i += 1) {
+            if (Math.random() < 0.35) {
+              sparks.push({
+                x: cells[i].x + stage.cellW / 2,
+                y: cells[i].y + stage.cellH / 2,
+                vx: -40 + Math.random() * 80,
+                vy: 30 + Math.random() * 120,
+                life: 450
+              });
+            }
+          }
+        }
+        etchedBefore = etched;
+        for (let i = sparks.length - 1; i >= 0; i -= 1) {
+          const spark = sparks[i];
+          spark.life -= dt;
+          if (spark.life <= 0) {
+            sparks.splice(i, 1);
+            continue;
+          }
+          spark.vy += 300 * dtS;
+          spark.x += spark.vx * dtS;
+          spark.y += spark.vy * dtS;
+          stage.ctx.globalAlpha = spark.life / 450;
+          stage.ctx.fillStyle = "#ffb347";
+          stage.ctx.fillRect(spark.x, spark.y, 2, 2);
+          stage.ctx.globalAlpha = 1;
+        }
+        return etched < cells.length || sparks.length > 0;
+      };
+    });
+  }
+
   // src/index.js
-  var version = "0.2.0";
+  var version = "0.3.0";
   return __toCommonJS(index_exports);
 })();
