@@ -751,22 +751,23 @@ var RetroTextEffects = (() => {
     const flicker = options.flicker !== false;
     ensureFlickerStyle();
     const previous = {
-      position: host.style.position,
       textShadow: host.style.textShadow,
       animation: host.style.animation
     };
-    if (getComputedStyle(host).position === "static") {
-      host.style.position = "relative";
-    }
     if (glow) {
       host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
     }
     if (flicker) {
       host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
     }
+    const parent = host.parentNode || host;
+    const previousParentPosition = parent.style.position;
+    if (getComputedStyle(parent).position === "static") {
+      parent.style.position = "relative";
+    }
     const scanlines = document.createElement("div");
-    scanlines.style.cssText = `position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
-    host.appendChild(scanlines);
+    scanlines.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${host.offsetWidth}px;height:${host.offsetHeight}px;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
+    parent.appendChild(scanlines);
     let cancelled = false;
     let resolveFinished;
     const finished = new Promise((resolve) => {
@@ -782,7 +783,7 @@ var RetroTextEffects = (() => {
         if (scanlines.parentNode) {
           scanlines.parentNode.removeChild(scanlines);
         }
-        host.style.position = previous.position;
+        parent.style.position = previousParentPosition;
         host.style.textShadow = previous.textShadow;
         host.style.animation = previous.animation;
         resolveFinished();
@@ -1851,6 +1852,6 @@ var RetroTextEffects = (() => {
   }
 
   // src/index.js
-  var version = "0.4.0";
+  var version = "0.4.1";
   return __toCommonJS(index_exports);
 })();
