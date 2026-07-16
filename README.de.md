@@ -8,13 +8,15 @@
 ---
 
 Retro-Terminal-Texteffekte für den Browser - **decrypt**, **print**, **matrix**,
-**overflow** - als eine einzige, abhängigkeitsfreie Datei, die du in jede Seite
-einbinden kannst.
+**matrix2**, **overflow**, **crt** - als eine einzige, abhängigkeitsfreie Datei, die
+du in jede Seite einbinden kannst.
 
-Jeder Effekt läuft auf einem simplen `<pre>`-Block, indem er nur dessen Textinhalt
-umschreibt. Kein Canvas: der Text bleibt markierbar, Box-Drawing-Zeichen bleiben
-ausgerichtet, und die Farbe wird von deinem Element geerbt (ideal für eine ohnehin
-grüne Konsole).
+Die meisten Effekte laufen auf einem simplen `<pre>`-Block, indem sie nur dessen
+Textinhalt umschreiben - kein Canvas, der Text bleibt markierbar, Box-Drawing-Zeichen
+bleiben ausgerichtet, und die Farbe wird von deinem Element geerbt (ideal für eine
+ohnehin grüne Konsole). Zwei Effekte gehen darüber hinaus: `matrix2` ist ein
+Canvas-Overlay für den klassischen Fallende-Glyphen-Look, und `crt` legt eine
+dauerhafte Scanline-/Glow-/Flicker-Behandlung über ein beliebiges Element.
 
 ## Schnellstart
 
@@ -36,8 +38,10 @@ du einen Effekt mit einem Element oder einem CSS-Selektor auf.
 | --- | --- |
 | `decrypt(el, opts)` | Zellen flackern durch Zufallsglyphen und rasten auf den Zieltext ein. |
 | `print(el, opts)` | Enthüllt den Text in Leserichtung mit wanderndem Druckkopf. |
-| `matrix(el, opts)` | Jede Spalte löst sich von oben nach unten hinter einer fallenden Glyphe auf. |
+| `matrix(el, opts)` | Jede Spalte löst sich von oben nach unten hinter einer fallenden Glyphe auf (reiner Text). |
+| `matrix2(el, opts)` | Canvas-Overlay: Katakana-Regen über dem Element, blendet aus und gibt den Text frei. |
 | `overflow(el, opts)` | Zeilen scrollen und mischen sich, dann ordnen sie sich. |
+| `crt(el, opts)` | Dauerhafte CRT-Behandlung - Phosphor-Glow, Scanlines, leichtes Flicker. `cancel()` entfernt sie. |
 
 Jeder Effekt gibt einen kleinen Controller zurück:
 
@@ -59,6 +63,12 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | `cps` | number | `60` | `print` |
 | `head` | string | `█` | `print` |
 | `cycles` | number | `3` | `overflow` |
+| `duration` | number (ms) | `1500` | `matrix2` |
+| `fontSize` | number | `20` | `matrix2` |
+| `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt` |
+| `scanlineOpacity` | number | `0.15` | `crt` |
+| `glow` | boolean | `true` | `crt` |
+| `flicker` | boolean | `true` | `crt` |
 
 ## Offline / self-hosted einsetzen
 
