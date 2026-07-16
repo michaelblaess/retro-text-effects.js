@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>retro-text-effects.js — Retro terminal text effects for the browser</title>
+  <meta name="description" content="Zero-dependency retro terminal text effects for the browser: decrypt, print, matrix and overflow, in one self-contained file.">
+  <link rel="stylesheet" href="css/precision.css">
+  <style>
+    /* Page-specific: live terminal + effect controls */
+    .demo { max-width: var(--max-width); margin: 0 auto; padding: 0 32px 40px; }
+    .demo-block { margin-bottom: 40px; }
+    .fx-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .fx-btn {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); background: var(--bg-secondary);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 8px 16px; cursor: pointer; transition: all var(--transition);
+    }
+    .fx-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+    .term {
+      margin: 0; padding: 22px 24px; border-radius: var(--radius-lg);
+      background: #000; color: #33ff33; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 15px; line-height: 1.6;
+      white-space: pre; box-shadow: inset 0 0 80px rgba(51,255,51,.06), var(--shadow-elevated);
+      text-shadow: 0 0 5px rgba(51,255,51,.45); border: 1px solid #123012; min-height: 3em;
+    }
+    .term.banner { color: #35d0ff; text-shadow: 0 0 6px rgba(53,208,255,.5); font-size: 13px; line-height: 1.15; }
+    .api-table-wrap { overflow-x: auto; margin-top: 24px; }
+    .api-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .api-table th { text-align: left; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; border-bottom: 2px solid var(--border); }
+    .api-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+    .api-table tr:hover td { background: var(--accent-subtle); }
+    .api-table code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); background: var(--accent-muted); padding: 2px 6px; border-radius: 4px; }
+    .install-code { display: block; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6; color: var(--accent); background: var(--accent-muted); padding: 16px 18px; border-radius: var(--radius-sm); margin: 0 auto; max-width: 720px; white-space: pre; overflow-x: auto; }
+    @media (max-width: 640px) { .demo { padding: 0 16px 32px; } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <span class="header-repo">retro-text-effects.js</span>
+    </div>
+    <div class="header-right">
+      <a href="#demo" class="header-link">Demo</a>
+      <a href="#effects" class="header-link">Effects</a>
+      <a href="#usage" class="header-link">Usage</a>
+      <a href="https://github.com/michaelblaess/retro-text-effects.js" class="header-link">GitHub</a>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.1.0</div>
+    <h1>retro-text-effects<span class="accent">.js</span></h1>
+    <p class="hero-description">Retro terminal text effects for the browser - decrypt, print, matrix and overflow. Vanilla JavaScript, no dependencies, no external requests, shipped as one self-contained file you can drop into any page.</p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn btn-primary">See it live</a>
+      <a href="https://github.com/michaelblaess/retro-text-effects.js" class="btn btn-secondary">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub Repository
+      </a>
+    </div>
+  </section>
+
+  <!-- LIVE DEMO -->
+  <section class="section" id="demo" style="padding-bottom: 8px;">
+    <div class="section-label">Live</div>
+    <h2 class="section-title">Try the effects</h2>
+    <p class="section-description">Every button below runs the real library, right here in your browser. Pick an effect and watch the text resolve.</p>
+  </section>
+
+  <div class="demo">
+    <div class="demo-block">
+      <div class="fx-bar">
+        <button class="fx-btn" onclick="runFx('decrypt', '#demo-banner')">decrypt</button>
+        <button class="fx-btn" onclick="runFx('print', '#demo-banner')">print</button>
+        <button class="fx-btn" onclick="runFx('matrix', '#demo-banner')">matrix</button>
+        <button class="fx-btn" onclick="runFx('overflow', '#demo-banner')">overflow</button>
+      </div>
+      <pre id="demo-banner" class="term banner">██████  ███████ ████████ ██████   ██████
+██   ██ ██         ██    ██   ██ ██    ██
+██████  █████      ██    ██████  ██    ██
+██   ██ ██         ██    ██   ██ ██    ██
+██   ██ ███████    ██    ██   ██  ██████   . j s</pre>
+    </div>
+
+    <div class="demo-block">
+      <div class="fx-bar">
+        <button class="fx-btn" onclick="runFx('decrypt', '#demo-log')">decrypt</button>
+        <button class="fx-btn" onclick="runFx('print', '#demo-log')">print</button>
+        <button class="fx-btn" onclick="runFx('matrix', '#demo-log')">matrix</button>
+        <button class="fx-btn" onclick="runFx('overflow', '#demo-log')">overflow</button>
+      </div>
+      <pre id="demo-log" class="term">=== Link scan started ===
+14 domains loaded from blacklist
+fields: title, body, url, summary, code
+
+[staging.example.com] 3 matches in content_items
+[staging.example.com] 3 entries repaired
+[www.example.org] 1 match in content_items
+[www.example.org] 1 entry repaired
+
+=== Scan finished in 7.2s ===
+domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div></div>
+
+  <!-- EFFECTS -->
+  <section class="section" id="effects">
+    <div class="section-label">Effects</div>
+    <h2 class="section-title">Four effects</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔓</div>
+        <h3>decrypt</h3>
+        <p>Every cell flickers through random glyphs and then locks onto its final character. Whitespace stays put, so a framed layout never jumps.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <h3>print</h3>
+        <p>Typewriter reveal, character by character, with a blinking head cursor running ahead of the text.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🟩</div>
+        <h3>matrix</h3>
+        <p>Columns rain down from the top, each settling row by row until the message stands still.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔀</div>
+        <h3>overflow</h3>
+        <p>Lines scramble and cycle a few times before snapping back into their final order.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><div class="divider-line"></div></div>
+
+  <!-- USAGE -->
+  <section class="section" id="usage">
+    <div class="section-label">Getting started</div>
+    <h2 class="section-title">Usage</h2>
+    <p class="section-description">Download <code style="color: var(--accent);">retro-text-effects.min.js</code> from the releases and include it with a plain script tag. No build step, no dependencies.</p>
+    <pre class="install-code">&lt;script src="retro-text-effects.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  RetroTextEffects.decrypt('#log');
+  RetroTextEffects.print('#banner', { cps: 80 });
+&lt;/script&gt;</pre>
+
+    <div class="api-table-wrap">
+      <table class="api-table">
+        <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Effects</th></tr></thead>
+        <tbody>
+          <tr><td><code>speed</code></td><td>number</td><td><code>1</code></td><td>all</td></tr>
+          <tr><td><code>fps</code></td><td>number</td><td><code>30</code></td><td>all</td></tr>
+          <tr><td><code>onDone</code></td><td>function</td><td>-</td><td>all</td></tr>
+          <tr><td><code>glyphs</code></td><td>string</td><td>built-in pool</td><td>decrypt, matrix</td></tr>
+          <tr><td><code>preserveWhitespace</code></td><td>boolean</td><td><code>true</code></td><td>decrypt</td></tr>
+          <tr><td><code>cps</code></td><td>number</td><td><code>60</code></td><td>print</td></tr>
+          <tr><td><code>head</code></td><td>string</td><td><code>█</code></td><td>print</td></tr>
+          <tr><td><code>cycles</code></td><td>number</td><td><code>3</code></td><td>overflow</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align: center; color: var(--text-tertiary); font-size: 0.8rem; margin-top: 16px;">
+      Each effect takes an element or a CSS selector and returns <code style="color: var(--accent);">{ finished, cancel }</code>.
+    </p>
+  </section>
+
+  <div class="divider"><div class="divider-line"></div></div>
+
+  <!-- TECH STACK -->
+  <section class="section">
+    <div class="section-label">Technology</div>
+    <h2 class="section-title">Tech Stack</h2>
+    <div class="stack">
+      <span class="stack-badge">Vanilla JS</span>
+      <span class="stack-badge">Zero dependencies</span>
+      <span class="stack-badge">esbuild</span>
+      <span class="stack-badge">Single file</span>
+      <span class="stack-badge">~4 KB minified</span>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Apache License 2.0</span>
+      <span class="footer-sep">·</span>
+      <a href="https://github.com/michaelblaess/retro-text-effects.js">GitHub</a>
+      <span class="footer-sep">·</span>
+      <span>Michael Blaess</span>
+    </div>
+  </footer>
+
+  <script src="js/theme.js"></script>
+  <script src="retro-text-effects.min.js"></script>
+  <script>
+    // Keep the pristine text per element so effects can be replayed from a clean slate.
+    var originals = new WeakMap();
+    var active = new WeakMap();
+
+    function runFx(fx, selector) {
+      if (typeof RetroTextEffects === 'undefined' || !RetroTextEffects[fx]) {
+        return;
+      }
+      var el = document.querySelector(selector);
+      if (!el) {
+        return;
+      }
+      if (!originals.has(el)) {
+        originals.set(el, el.textContent);
+      }
+      var running = active.get(el);
+      if (running && running.cancel) {
+        running.cancel();
+      }
+      el.textContent = originals.get(el);
+      active.set(el, RetroTextEffects[fx](el));
+    }
+
+    // First impression: decrypt the banner once everything is loaded.
+    window.addEventListener('load', function () {
+      runFx('decrypt', '#demo-banner');
+    });
+  </script>
+</body>
+</html>
