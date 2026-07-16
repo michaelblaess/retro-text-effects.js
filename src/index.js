@@ -38,4 +38,4 @@ export { swarm } from './effects/swarm.js';
 export { unstable } from './effects/unstable.js';
 export { rings } from './effects/rings.js';
 
-export const version = '0.4.0';
+export const version = '0.4.1';

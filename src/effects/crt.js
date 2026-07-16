@@ -57,14 +57,10 @@ export function crt(target, options = {}) {
   ensureFlickerStyle();
 
   const previous = {
-    position: host.style.position,
     textShadow: host.style.textShadow,
     animation: host.style.animation,
   };
 
-  if (getComputedStyle(host).position === 'static') {
-    host.style.position = 'relative';
-  }
   if (glow) {
     host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
   }
@@ -72,11 +68,22 @@ export function crt(target, options = {}) {
     host.style.animation = 'rte-crt-flicker 0.15s infinite alternate';
   }
 
+  // Scanlines als GESCHWISTER-Overlay ueber dem Host, NICHT als Kind: die Text-Effekte
+  // schreiben host.textContent pro Frame neu und wuerden ein Kind-Overlay sofort
+  // entfernen. Als Sibling ueberlebt das CRT jeden gleichzeitig laufenden Effekt.
+  const parent = host.parentNode || host;
+  const previousParentPosition = parent.style.position;
+  if (getComputedStyle(parent).position === 'static') {
+    parent.style.position = 'relative';
+  }
+
   const scanlines = document.createElement('div');
-  scanlines.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2;'
+  scanlines.style.cssText =
+    `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;`
+    + `width:${host.offsetWidth}px;height:${host.offsetHeight}px;pointer-events:none;z-index:2;`
     + `background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,`
     + `rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
-  host.appendChild(scanlines);
+  parent.appendChild(scanlines);
 
   let cancelled = false;
   let resolveFinished;
@@ -94,7 +101,7 @@ export function crt(target, options = {}) {
       if (scanlines.parentNode) {
         scanlines.parentNode.removeChild(scanlines);
       }
-      host.style.position = previous.position;
+      parent.style.position = previousParentPosition;
       host.style.textShadow = previous.textShadow;
       host.style.animation = previous.animation;
       resolveFinished();
