@@ -21,8 +21,10 @@ var RetroTextEffects = (() => {
   // src/index.js
   var index_exports = {};
   __export(index_exports, {
+    crt: () => crt,
     decrypt: () => decrypt,
     matrix: () => matrix,
+    matrix2: () => matrix2,
     overflow: () => overflow,
     print: () => print,
     version: () => version
@@ -283,6 +285,116 @@ var RetroTextEffects = (() => {
     );
   }
 
+  // src/effects/matrix2.js
+  var KATAKANA = "\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789ABCDEF";
+  function matrix2(target, options = {}) {
+    const host = resolveTarget(target);
+    const duration = options.duration || 1500;
+    const fontSize = options.fontSize || 20;
+    const color = options.color || "#00ff00";
+    const glyphs = options.glyphs || KATAKANA;
+    const parent = host.parentNode || host;
+    const previousPosition = parent.style.position;
+    if (getComputedStyle(parent).position === "static") {
+      parent.style.position = "relative";
+    }
+    const canvas = document.createElement("canvas");
+    const width = host.offsetWidth;
+    const height = host.offsetHeight;
+    canvas.width = Math.max(1, width);
+    canvas.height = Math.max(1, height);
+    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    parent.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const columnCount = Math.max(1, Math.floor(canvas.width / fontSize));
+    const columns = [];
+    for (let i = 0; i < columnCount; i += 1) {
+      columns.push(Math.random() * -100);
+    }
+    let raf = null;
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    function cleanup() {
+      if (raf !== null) {
+        cancelAnimationFrame(raf);
+        raf = null;
+      }
+      if (canvas.parentNode) {
+        canvas.parentNode.removeChild(canvas);
+      }
+      parent.style.position = previousPosition;
+    }
+    function finish() {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      cleanup();
+      if (options.onDone) {
+        options.onDone();
+      }
+      resolveFinished();
+    }
+    function fadeOut() {
+      let opacity = 1;
+      function fade() {
+        if (cancelled) {
+          return;
+        }
+        opacity -= 0.1;
+        if (opacity <= 0) {
+          finish();
+          return;
+        }
+        canvas.style.opacity = String(opacity);
+        raf = requestAnimationFrame(fade);
+      }
+      fade();
+    }
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const start = performance.now();
+    function draw(now) {
+      if (cancelled) {
+        return;
+      }
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = color;
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < columns.length; i += 1) {
+        const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
+        const x = i * fontSize;
+        const y = columns[i] * fontSize;
+        ctx.fillText(glyph, x, y);
+        if (y > canvas.height && Math.random() > 0.975) {
+          columns[i] = 0;
+        }
+        columns[i] += 1;
+      }
+      if (now - start < duration) {
+        raf = requestAnimationFrame(draw);
+      } else {
+        fadeOut();
+      }
+    }
+    raf = requestAnimationFrame(draw);
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        cleanup();
+        resolveFinished();
+      }
+    };
+  }
+
   // src/effects/overflow.js
   function overflow(target, options = {}) {
     const element = resolveTarget(target);
@@ -316,7 +428,83 @@ var RetroTextEffects = (() => {
     );
   }
 
+  // src/effects/crt.js
+  var STYLE_ID = "rte-crt-style";
+  function ensureFlickerStyle() {
+    if (document.getElementById(STYLE_ID)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
+    document.head.appendChild(style);
+  }
+  function toGlow(color, alpha) {
+    const hex = color.replace("#", "");
+    let r;
+    let g;
+    let b;
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+    } else {
+      return color;
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  function crt(target, options = {}) {
+    const host = resolveTarget(target);
+    const color = options.color || "#33ff33";
+    const scanlineOpacity = options.scanlineOpacity === void 0 ? 0.15 : options.scanlineOpacity;
+    const glow = options.glow !== false;
+    const flicker = options.flicker !== false;
+    ensureFlickerStyle();
+    const previous = {
+      position: host.style.position,
+      textShadow: host.style.textShadow,
+      animation: host.style.animation
+    };
+    if (getComputedStyle(host).position === "static") {
+      host.style.position = "relative";
+    }
+    if (glow) {
+      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
+    }
+    if (flicker) {
+      host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
+    }
+    const scanlines = document.createElement("div");
+    scanlines.style.cssText = `position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
+    host.appendChild(scanlines);
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        if (scanlines.parentNode) {
+          scanlines.parentNode.removeChild(scanlines);
+        }
+        host.style.position = previous.position;
+        host.style.textShadow = previous.textShadow;
+        host.style.animation = previous.animation;
+        resolveFinished();
+      }
+    };
+  }
+
   // src/index.js
-  var version = "0.1.0";
+  var version = "0.2.0";
   return __toCommonJS(index_exports);
 })();

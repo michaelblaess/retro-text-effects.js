@@ -18,6 +18,7 @@
       padding: 8px 16px; cursor: pointer; transition: all var(--transition);
     }
     .fx-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+    .fx-btn.active { color: var(--text-primary); border-color: var(--accent); background: var(--accent-muted); }
     .term {
       margin: 0; padding: 22px 24px; border-radius: var(--radius-lg);
       background: #000; color: #33ff33; overflow-x: auto;
@@ -82,7 +83,9 @@
         <button class="fx-btn" onclick="runFx('decrypt', '#demo-banner')">decrypt</button>
         <button class="fx-btn" onclick="runFx('print', '#demo-banner')">print</button>
         <button class="fx-btn" onclick="runFx('matrix', '#demo-banner')">matrix</button>
+        <button class="fx-btn" onclick="runFx('matrix2', '#demo-banner')">matrix2</button>
         <button class="fx-btn" onclick="runFx('overflow', '#demo-banner')">overflow</button>
+        <button class="fx-btn" onclick="toggleCrt('#demo-banner', this)">crt</button>
       </div>
       <pre id="demo-banner" class="term banner">██████  ███████ ████████ ██████   ██████
 ██   ██ ██         ██    ██   ██ ██    ██
@@ -96,7 +99,9 @@
         <button class="fx-btn" onclick="runFx('decrypt', '#demo-log')">decrypt</button>
         <button class="fx-btn" onclick="runFx('print', '#demo-log')">print</button>
         <button class="fx-btn" onclick="runFx('matrix', '#demo-log')">matrix</button>
+        <button class="fx-btn" onclick="runFx('matrix2', '#demo-log')">matrix2</button>
         <button class="fx-btn" onclick="runFx('overflow', '#demo-log')">overflow</button>
+        <button class="fx-btn" onclick="toggleCrt('#demo-log', this)">crt</button>
       </div>
       <pre id="demo-log" class="term">=== Link scan started ===
 14 domains loaded from blacklist
@@ -117,7 +122,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <!-- EFFECTS -->
   <section class="section" id="effects">
     <div class="section-label">Effects</div>
-    <h2 class="section-title">Four effects</h2>
+    <h2 class="section-title">Six effects</h2>
     <div class="feature-grid">
       <div class="feature-card">
         <div class="feature-icon">🔓</div>
@@ -132,12 +137,22 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <div class="feature-card">
         <div class="feature-icon">🟩</div>
         <h3>matrix</h3>
-        <p>Columns rain down from the top, each settling row by row until the message stands still.</p>
+        <p>Columns rain down from the top, each settling row by row until the message stands still. Pure text, no canvas.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌧️</div>
+        <h3>matrix2</h3>
+        <p>The classic falling-glyph screen as a canvas overlay: katakana rain over the element, fading out to reveal the text. The one effect that uses a canvas.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔀</div>
         <h3>overflow</h3>
         <p>Lines scramble and cycle a few times before snapping back into their final order.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📺</div>
+        <h3>crt</h3>
+        <p>A persistent retro-monitor treatment: phosphor glow, subtle scanlines and a faint flicker. Toggle it on, cancel() to remove it.</p>
       </div>
     </div>
   </section>
@@ -153,6 +168,8 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
 &lt;script&gt;
   RetroTextEffects.decrypt('#log');
   RetroTextEffects.print('#banner', { cps: 80 });
+  RetroTextEffects.matrix2('#log', { duration: 1500 });
+  const screen = RetroTextEffects.crt('#log');  // screen.cancel() removes it
 &lt;/script&gt;</pre>
 
     <div class="api-table-wrap">
@@ -167,6 +184,12 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>cps</code></td><td>number</td><td><code>60</code></td><td>print</td></tr>
           <tr><td><code>head</code></td><td>string</td><td><code>█</code></td><td>print</td></tr>
           <tr><td><code>cycles</code></td><td>number</td><td><code>3</code></td><td>overflow</td></tr>
+          <tr><td><code>duration</code></td><td>number (ms)</td><td><code>1500</code></td><td>matrix2</td></tr>
+          <tr><td><code>fontSize</code></td><td>number</td><td><code>20</code></td><td>matrix2</td></tr>
+          <tr><td><code>color</code></td><td>string</td><td><code>#00ff00</code> / <code>#33ff33</code></td><td>matrix2, crt</td></tr>
+          <tr><td><code>scanlineOpacity</code></td><td>number</td><td><code>0.15</code></td><td>crt</td></tr>
+          <tr><td><code>glow</code></td><td>boolean</td><td><code>true</code></td><td>crt</td></tr>
+          <tr><td><code>flicker</code></td><td>boolean</td><td><code>true</code></td><td>crt</td></tr>
         </tbody>
       </table>
     </div>
@@ -186,7 +209,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <span class="stack-badge">Zero dependencies</span>
       <span class="stack-badge">esbuild</span>
       <span class="stack-badge">Single file</span>
-      <span class="stack-badge">~4 KB minified</span>
+      <span class="stack-badge">~7 KB minified</span>
     </div>
   </section>
 
@@ -225,6 +248,32 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       }
       el.textContent = originals.get(el);
       active.set(el, RetroTextEffects[fx](el));
+    }
+
+    // crt is persistent, so it toggles on/off and keeps its handle per element.
+    var crtHandles = new WeakMap();
+
+    function toggleCrt(selector, btn) {
+      if (typeof RetroTextEffects === 'undefined' || !RetroTextEffects.crt) {
+        return;
+      }
+      var el = document.querySelector(selector);
+      if (!el) {
+        return;
+      }
+      var handle = crtHandles.get(el);
+      if (handle) {
+        handle.cancel();
+        crtHandles.delete(el);
+        if (btn) {
+          btn.classList.remove('active');
+        }
+        return;
+      }
+      crtHandles.set(el, RetroTextEffects.crt(el));
+      if (btn) {
+        btn.classList.add('active');
+      }
     }
 
     // First impression: decrypt the banner once everything is loaded.

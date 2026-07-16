@@ -1,6 +1,6 @@
 {
   "name": "retro-text-effects",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Retro terminal text effects for the browser - decrypt, print, matrix, overflow - as a single dependency-free file.",
   "type": "module",
   "main": "dist/retro-text-effects.js",
