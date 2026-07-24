@@ -14,7 +14,7 @@ ausgeliefert als eine einzige Datei, die du in jede Seite einbinden kannst.
 **[Live-Demo](https://michaelblaess.github.io/retro-text-effects.js/)** - jeder Effekt
 läuft direkt im Browser.
 
-Die Effekte gibt es in zwei Gruppen:
+Die Effekte gibt es in drei Gruppen:
 
 - **Text-Effekte** laufen auf einem simplen `<pre>`-Block, indem sie nur dessen Textinhalt
   umschreiben - kein Canvas, der Text bleibt markierbar, Box-Drawing-Zeichen bleiben
@@ -23,6 +23,9 @@ Die Effekte gibt es in zwei Gruppen:
 - **Canvas-Effekte** legen temporär ein Canvas über das Element für freie 2D-Bewegung der
   Zeichen (Feuerwerk, Schwarzes Loch, Regen, ...), blenden es aus und geben den
   unveränderten Text frei.
+- **Stil-Effekte** (`crt`, `colorshift`, `highlight`) färben oder beleuchten das Element an
+  Ort und Stelle, ohne den Text je anzufassen - sie legen sich sauber über eine bereits
+  sichtbare Konsole.
 
 ## Schnellstart
 
@@ -58,7 +61,9 @@ Diese schreiben nur den `textContent` des Elements um, Frame für Frame:
 | `slide(el, opts)` | Die Zeilen schieben sich als Blöcke herein, abwechselnd von links und rechts. |
 | `burn(el, opts)` | Eine Glutfront mit ausgefranster Kante frisst sich durch den Block und brennt den Text ein. |
 | `vhstape(el, opts)` | Störbänder verschieben Zeilen und streuen Rauschen, bis das Tracking steht. |
-| `crt(el, opts)` | Dauerhafte CRT-*Stil*-Behandlung - Phosphor-Glow, Scanlines, leichtes Flicker. `cancel()` entfernt sie. |
+| `wipe(el, opts)` | Eine gerade Wellenfront fegt in gewählter Richtung über den Block und lässt den Text zurück. |
+| `slice(el, opts)` | Jede Zeile wird halbiert; die beiden Hälften schieben sich zusammen, bis sie in der Mitte aneinanderstoßen. |
+| `waves(el, opts)` | Ein wogender Wellenkamm rollt über den Block und löst den Text auf, während er vorbeizieht. |
 
 ### Canvas-Effekte
 
@@ -84,6 +89,24 @@ und blenden dann aus, um den unveränderten Text freizugeben:
 | `rings(el, opts)` | Zeichen kreisen auf konzentrischen Ringen und zerstreuen sich dann an ihre Plätze. |
 | `unstable(el, opts)` | Der Text zittert, explodiert Richtung Ränder und setzt sich wieder zusammen. |
 | `laseretch(el, opts)` | Ein Laserstrahl brennt den Text ein und wirft fallende Funken ab. |
+| `binarypath(el, opts)` | Zeichen kommen als Ströme aus `0`/`1` herein und wandern im rechten Winkel an ihren Platz, dann lösen sie sich auf. |
+| `crumble(el, opts)` | Der Text zerbröselt zu verstreutem Staub, dann wird der Staub aufgesaugt und formt sich neu. |
+| `orbittingvolley(el, opts)` | Vier kreisende Werfer feuern die Zeichen nach innen und bauen den Text aus der Mitte heraus auf. |
+| `smoke(el, opts)` | Eine driftende Rauchwand rollt über den Block und lässt die Zeichen eingefärbt zurück. |
+| `spotlights(el, opts)` | Scheinwerfer suchen den dunklen Block ab, laufen in der Mitte zusammen und fluten ihn, um den Text zu enthüllen. |
+| `synthgrid(el, opts)` | Ein Neon-Gitter wächst aus der Mitte, die Zeichen füllen sich diagonal auf, dann blendet das Gitter aus. |
+| `thunderstorm(el, opts)` | Blitze schlagen nacheinander in den Block ein und beleuchten den Text Streifen für Streifen. |
+
+### Stil-Effekte (ohne Text-Neuschreiben)
+
+Diese färben oder beleuchten das Element an Ort und Stelle - sie fassen den `textContent`
+nie an und legen sich sauber über eine bereits sichtbare Konsole:
+
+| Effekt | Was er macht |
+| --- | --- |
+| `crt(el, opts)` | Dauerhafte CRT-Behandlung - Phosphor-Glow, Scanlines, leichtes Flicker. `cancel()` entfernt sie. |
+| `colorshift(el, opts)` | Dauerhafter animierter Farbverlauf, der ständig über die Glyphen gleitet. `cancel()` entfernt ihn. |
+| `highlight(el, opts)` | Lässt einen einzelnen Glanzstreifen über den Text laufen und stellt danach die Originalfarben wieder her. |
 
 Jeder Effekt gibt einen kleinen Controller zurück:
 
@@ -109,10 +132,13 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | `band` | number | `6` | `sweep` (Breite des Rauschbands) |
 | `duration` | number (ms) | `1500` | `matrix2` |
 | `fontSize` | number | `20` | `matrix2` |
-| `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt` |
+| `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt`, `synthgrid`, `highlight` |
 | `scanlineOpacity` | number | `0.15` | `crt` |
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
+| `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
+| `amplitude` | number | `4` | `waves` (wie stark der Kamm pro Zeile ausschlägt) |
+| `colors` | string[] | Retro-Palette | `colorshift` |
 
 Alle übrigen Canvas-Effekte nehmen `speed` und `onDone`; Schrift, Farbe und Zeichenraster
 werden vom Ziel-Element gelesen, damit die Übergabe an den echten Text nahtlos ist.

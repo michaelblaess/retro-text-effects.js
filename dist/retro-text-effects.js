@@ -22,20 +22,25 @@ var RetroTextEffects = (() => {
   var index_exports = {};
   __export(index_exports, {
     beams: () => beams,
+    binarypath: () => binarypath,
     blackhole: () => blackhole,
     bouncyballs: () => bouncyballs,
     bubbles: () => bubbles,
     burn: () => burn,
+    colorshift: () => colorshift,
     crt: () => crt,
+    crumble: () => crumble,
     decrypt: () => decrypt,
     decrypt2: () => decrypt2,
     errorcorrect: () => errorcorrect,
     expand: () => expand,
     fireworks: () => fireworks,
+    highlight: () => highlight,
     laseretch: () => laseretch,
     matrix: () => matrix,
     matrix2: () => matrix2,
     middleout: () => middleout,
+    orbittingvolley: () => orbittingvolley,
     overflow: () => overflow,
     overflow2: () => overflow2,
     pour: () => pour,
@@ -45,13 +50,20 @@ var RetroTextEffects = (() => {
     randomsequence: () => randomsequence,
     rings: () => rings,
     scattered: () => scattered,
+    slice: () => slice,
     slide: () => slide,
+    smoke: () => smoke,
+    spotlights: () => spotlights,
     spray: () => spray,
     swarm: () => swarm,
     sweep: () => sweep,
+    synthgrid: () => synthgrid,
+    thunderstorm: () => thunderstorm,
     unstable: () => unstable,
     version: () => version,
-    vhstape: () => vhstape
+    vhstape: () => vhstape,
+    waves: () => waves,
+    wipe: () => wipe
   });
 
   // src/core/dom.js
@@ -714,191 +726,61 @@ var RetroTextEffects = (() => {
     );
   }
 
-  // src/effects/crt.js
-  var STYLE_ID = "rte-crt-style";
-  function ensureFlickerStyle() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
+  // src/effects/wipe.js
+  function rankFor(direction, r, c, maxR, maxC) {
+    switch (direction) {
+      case "right":
+        return maxC - c;
+      case "up":
+        return maxR - r;
+      case "down":
+        return r;
+      case "left":
+        return c;
+      case "diagonal":
+      default:
+        return r + c;
     }
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
-    document.head.appendChild(style);
   }
-  function toGlow(color, alpha) {
-    const hex = color.replace("#", "");
-    let r;
-    let g;
-    let b;
-    if (hex.length === 3) {
-      r = parseInt(hex[0] + hex[0], 16);
-      g = parseInt(hex[1] + hex[1], 16);
-      b = parseInt(hex[2] + hex[2], 16);
-    } else if (hex.length === 6) {
-      r = parseInt(hex.slice(0, 2), 16);
-      g = parseInt(hex.slice(2, 4), 16);
-      b = parseInt(hex.slice(4, 6), 16);
-    } else {
-      return color;
-    }
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  function crt(target, options = {}) {
-    const host = resolveTarget(target);
-    const color = options.color || "#33ff33";
-    const scanlineOpacity = options.scanlineOpacity === void 0 ? 0.15 : options.scanlineOpacity;
-    const glow = options.glow !== false;
-    const flicker = options.flicker !== false;
-    ensureFlickerStyle();
-    const previous = {
-      textShadow: host.style.textShadow,
-      animation: host.style.animation
-    };
-    if (glow) {
-      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
-    }
-    if (flicker) {
-      host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
-    }
-    const parent = host.parentNode || host;
-    const previousParentPosition = parent.style.position;
-    if (getComputedStyle(parent).position === "static") {
-      parent.style.position = "relative";
-    }
-    const scanlines = document.createElement("div");
-    scanlines.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${host.offsetWidth}px;height:${host.offsetHeight}px;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
-    parent.appendChild(scanlines);
-    let cancelled = false;
-    let resolveFinished;
-    const finished = new Promise((resolve) => {
-      resolveFinished = resolve;
-    });
-    return {
-      finished,
-      cancel() {
-        if (cancelled) {
-          return;
+  function wipe(target, options = {}) {
+    const element = resolveTarget(target);
+    const finalText = getText(element);
+    const speed = options.speed || 1;
+    const direction = options.direction || "diagonal";
+    const grid = toLines(finalText).map(toCells);
+    const maxR = grid.length - 1;
+    const maxC = grid.reduce((m, row) => Math.max(m, row.length), 1) - 1;
+    let maxRank = 0;
+    const ranks = grid.map((row, r) => row.map((ch, c) => {
+      const rank = rankFor(direction, r, c, maxR, maxC);
+      if (rank > maxRank) {
+        maxRank = rank;
+      }
+      return rank;
+    }));
+    const perTick = Math.max(1, (maxRank + 2) / 45) * speed;
+    let front = 0;
+    return createLoop(
+      () => {
+        front += perTick;
+        if (front >= maxRank) {
+          setText(element, finalText);
+          if (options.onDone) {
+            options.onDone();
+          }
+          return false;
         }
-        cancelled = true;
-        if (scanlines.parentNode) {
-          scanlines.parentNode.removeChild(scanlines);
-        }
-        parent.style.position = previousParentPosition;
-        host.style.textShadow = previous.textShadow;
-        host.style.animation = previous.animation;
-        resolveFinished();
-      }
-    };
-  }
-
-  // src/effects/matrix2.js
-  var KATAKANA = "\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789ABCDEF";
-  function matrix2(target, options = {}) {
-    const host = resolveTarget(target);
-    const duration = options.duration || 1500;
-    const fontSize = options.fontSize || 20;
-    const color = options.color || "#00ff00";
-    const glyphs = options.glyphs || KATAKANA;
-    const parent = host.parentNode || host;
-    const previousPosition = parent.style.position;
-    if (getComputedStyle(parent).position === "static") {
-      parent.style.position = "relative";
-    }
-    const canvas = document.createElement("canvas");
-    const width = host.offsetWidth;
-    const height = host.offsetHeight;
-    canvas.width = Math.max(1, width);
-    canvas.height = Math.max(1, height);
-    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
-    parent.appendChild(canvas);
-    const ctx = canvas.getContext("2d");
-    const columnCount = Math.max(1, Math.floor(canvas.width / fontSize));
-    const columns = [];
-    for (let i = 0; i < columnCount; i += 1) {
-      columns.push(Math.random() * -100);
-    }
-    let raf = null;
-    let cancelled = false;
-    let resolveFinished;
-    const finished = new Promise((resolve) => {
-      resolveFinished = resolve;
-    });
-    function cleanup() {
-      if (raf !== null) {
-        cancelAnimationFrame(raf);
-        raf = null;
-      }
-      if (canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas);
-      }
-      parent.style.position = previousPosition;
-    }
-    function finish() {
-      if (cancelled) {
-        return;
-      }
-      cancelled = true;
-      cleanup();
-      if (options.onDone) {
-        options.onDone();
-      }
-      resolveFinished();
-    }
-    function fadeOut() {
-      let opacity = 1;
-      function fade() {
-        if (cancelled) {
-          return;
-        }
-        opacity -= 0.1;
-        if (opacity <= 0) {
-          finish();
-          return;
-        }
-        canvas.style.opacity = String(opacity);
-        raf = requestAnimationFrame(fade);
-      }
-      fade();
-    }
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const start = performance.now();
-    function draw(now) {
-      if (cancelled) {
-        return;
-      }
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = color;
-      ctx.font = `${fontSize}px monospace`;
-      for (let i = 0; i < columns.length; i += 1) {
-        const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
-        const x = i * fontSize;
-        const y = columns[i] * fontSize;
-        ctx.fillText(glyph, x, y);
-        if (y > canvas.height && Math.random() > 0.975) {
-          columns[i] = 0;
-        }
-        columns[i] += 1;
-      }
-      if (now - start < duration) {
-        raf = requestAnimationFrame(draw);
-      } else {
-        fadeOut();
-      }
-    }
-    raf = requestAnimationFrame(draw);
-    return {
-      finished,
-      cancel() {
-        if (cancelled) {
-          return;
-        }
-        cancelled = true;
-        cleanup();
-        resolveFinished();
-      }
-    };
+        const out = grid.map((row, r) => row.map((ch, c) => {
+          if (isBlank(ch)) {
+            return ch;
+          }
+          return ranks[r][c] <= front ? ch : " ";
+        }).join("")).join("\n");
+        setText(element, out);
+        return true;
+      },
+      { fps: options.fps || 30 }
+    );
   }
 
   // src/core/canvas.js
@@ -939,6 +821,10 @@ var RetroTextEffects = (() => {
     canvas.width = Math.max(1, Math.round(width * dpr));
     canvas.height = Math.max(1, Math.round(height * dpr));
     canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    canvas.style.borderTopLeftRadius = style.borderTopLeftRadius;
+    canvas.style.borderTopRightRadius = style.borderTopRightRadius;
+    canvas.style.borderBottomRightRadius = style.borderBottomRightRadius;
+    canvas.style.borderBottomLeftRadius = style.borderBottomLeftRadius;
     parent.appendChild(canvas);
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
@@ -1050,6 +936,430 @@ var RetroTextEffects = (() => {
           cancelAnimationFrame(raf);
         }
         stage.remove();
+        resolveFinished();
+      }
+    };
+  }
+
+  // src/effects/slice.js
+  function slice(target, options = {}) {
+    const element = resolveTarget(target);
+    const finalText = getText(element);
+    const speed = options.speed || 1;
+    const grid = toLines(finalText).map(toCells);
+    const maxLen = grid.reduce((m, row) => Math.max(m, row.length), 1);
+    const perTick = 1 / 45 * speed;
+    let progress = 0;
+    return createLoop(
+      () => {
+        progress += perTick;
+        if (progress >= 1) {
+          setText(element, finalText);
+          if (options.onDone) {
+            options.onDone();
+          }
+          return false;
+        }
+        const e = easeOutCubic(clamp01(progress));
+        const shift = Math.round((1 - e) * maxLen);
+        const out = grid.map((row) => {
+          const len = row.length;
+          const mid = Math.floor(len / 2);
+          let line = "";
+          for (let c = 0; c < len; c += 1) {
+            const fromLeft = c + shift;
+            const fromRight = c - shift;
+            if (fromLeft < mid && fromLeft >= 0) {
+              line += row[fromLeft];
+            } else if (fromRight >= mid && fromRight < len) {
+              line += row[fromRight];
+            } else {
+              line += " ";
+            }
+          }
+          return line;
+        }).join("\n");
+        setText(element, out);
+        return true;
+      },
+      { fps: options.fps || 30 }
+    );
+  }
+
+  // src/effects/waves.js
+  var CREST = Array.from("\u2593\u2592\u2591");
+  function waves(target, options = {}) {
+    const element = resolveTarget(target);
+    const finalText = getText(element);
+    const speed = options.speed || 1;
+    const amplitude = options.amplitude === void 0 ? 4 : options.amplitude;
+    const grid = toLines(finalText).map(toCells);
+    const maxLen = grid.reduce((m, row) => Math.max(m, row.length), 1);
+    const perTick = Math.max(1, (maxLen + amplitude + CREST.length) / 42) * speed;
+    let front = -amplitude;
+    return createLoop(
+      () => {
+        front += perTick;
+        if (front >= maxLen + amplitude + CREST.length) {
+          setText(element, finalText);
+          if (options.onDone) {
+            options.onDone();
+          }
+          return false;
+        }
+        const out = grid.map((row, r) => {
+          const rowFront = front + Math.sin(r * 0.6) * amplitude;
+          let line = "";
+          for (let c = 0; c < row.length; c += 1) {
+            const ch = row[c];
+            if (isBlank(ch)) {
+              line += ch;
+              continue;
+            }
+            const d = rowFront - c;
+            if (d < 0) {
+              line += " ";
+            } else if (d < CREST.length) {
+              line += CREST[Math.floor(d)];
+            } else {
+              line += ch;
+            }
+          }
+          return line;
+        }).join("\n");
+        setText(element, out);
+        return true;
+      },
+      { fps: options.fps || 30 }
+    );
+  }
+
+  // src/effects/crt.js
+  var STYLE_ID = "rte-crt-style";
+  function ensureFlickerStyle() {
+    if (document.getElementById(STYLE_ID)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
+    document.head.appendChild(style);
+  }
+  function toGlow(color, alpha) {
+    const hex = color.replace("#", "");
+    let r;
+    let g;
+    let b;
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+    } else {
+      return color;
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  function crt(target, options = {}) {
+    const host = resolveTarget(target);
+    const color = options.color || "#33ff33";
+    const scanlineOpacity = options.scanlineOpacity === void 0 ? 0.15 : options.scanlineOpacity;
+    const glow = options.glow !== false;
+    const flicker = options.flicker !== false;
+    ensureFlickerStyle();
+    const previous = {
+      textShadow: host.style.textShadow,
+      animation: host.style.animation
+    };
+    if (glow) {
+      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
+    }
+    if (flicker) {
+      host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
+    }
+    const parent = host.parentNode || host;
+    const previousParentPosition = parent.style.position;
+    if (getComputedStyle(parent).position === "static") {
+      parent.style.position = "relative";
+    }
+    const scanlines = document.createElement("div");
+    scanlines.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${host.offsetWidth}px;height:${host.offsetHeight}px;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,${scanlineOpacity}) 0px,rgba(0,0,0,${scanlineOpacity}) 1px,transparent 1px,transparent 2px);`;
+    parent.appendChild(scanlines);
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        if (scanlines.parentNode) {
+          scanlines.parentNode.removeChild(scanlines);
+        }
+        parent.style.position = previousParentPosition;
+        host.style.textShadow = previous.textShadow;
+        host.style.animation = previous.animation;
+        resolveFinished();
+      }
+    };
+  }
+
+  // src/effects/colorshift.js
+  var STYLE_ID2 = "rte-colorshift-style";
+  var DEFAULT_COLORS = ["#33ff33", "#66ddff", "#ff66cc", "#ffd700", "#33ff33"];
+  function ensureKeyframes() {
+    if (document.getElementById(STYLE_ID2)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = STYLE_ID2;
+    style.textContent = "@keyframes rte-colorshift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+    document.head.appendChild(style);
+  }
+  function colorshift(target, options = {}) {
+    const host = resolveTarget(target);
+    const colors = options.colors && options.colors.length > 1 ? options.colors : DEFAULT_COLORS;
+    const speed = options.speed || 1;
+    const duration = (6 / speed).toFixed(2);
+    ensureKeyframes();
+    const previous = {
+      backgroundImage: host.style.backgroundImage,
+      backgroundSize: host.style.backgroundSize,
+      backgroundClip: host.style.backgroundClip,
+      webkitBackgroundClip: host.style.webkitBackgroundClip,
+      webkitTextFillColor: host.style.webkitTextFillColor,
+      color: host.style.color,
+      animation: host.style.animation
+    };
+    host.style.backgroundImage = `linear-gradient(90deg, ${colors.join(", ")})`;
+    host.style.backgroundSize = "200% 200%";
+    host.style.backgroundClip = "text";
+    host.style.webkitBackgroundClip = "text";
+    host.style.webkitTextFillColor = "transparent";
+    host.style.color = "transparent";
+    host.style.animation = `rte-colorshift ${duration}s linear infinite`;
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        host.style.backgroundImage = previous.backgroundImage;
+        host.style.backgroundSize = previous.backgroundSize;
+        host.style.backgroundClip = previous.backgroundClip;
+        host.style.webkitBackgroundClip = previous.webkitBackgroundClip;
+        host.style.webkitTextFillColor = previous.webkitTextFillColor;
+        host.style.color = previous.color;
+        host.style.animation = previous.animation;
+        resolveFinished();
+      }
+    };
+  }
+
+  // src/effects/highlight.js
+  function highlight(target, options = {}) {
+    const host = resolveTarget(target);
+    const speed = options.speed || 1;
+    const light = options.color || "#ffffff";
+    const rightward = options.direction !== "left";
+    const base = getComputedStyle(host).color || "#33ff33";
+    const duration = 1200 / speed;
+    const previous = {
+      backgroundImage: host.style.backgroundImage,
+      backgroundSize: host.style.backgroundSize,
+      backgroundRepeat: host.style.backgroundRepeat,
+      backgroundPosition: host.style.backgroundPosition,
+      backgroundClip: host.style.backgroundClip,
+      webkitBackgroundClip: host.style.webkitBackgroundClip,
+      webkitTextFillColor: host.style.webkitTextFillColor,
+      color: host.style.color
+    };
+    host.style.backgroundImage = `linear-gradient(100deg, ${base} 42%, ${light} 50%, ${base} 58%)`;
+    host.style.backgroundSize = "300% 100%";
+    host.style.backgroundRepeat = "no-repeat";
+    host.style.backgroundClip = "text";
+    host.style.webkitBackgroundClip = "text";
+    host.style.webkitTextFillColor = "transparent";
+    host.style.color = "transparent";
+    const from = rightward ? 130 : -30;
+    const to = rightward ? -30 : 130;
+    let raf = null;
+    let cancelled = false;
+    let start = 0;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    function restore() {
+      host.style.backgroundImage = previous.backgroundImage;
+      host.style.backgroundSize = previous.backgroundSize;
+      host.style.backgroundRepeat = previous.backgroundRepeat;
+      host.style.backgroundPosition = previous.backgroundPosition;
+      host.style.backgroundClip = previous.backgroundClip;
+      host.style.webkitBackgroundClip = previous.webkitBackgroundClip;
+      host.style.webkitTextFillColor = previous.webkitTextFillColor;
+      host.style.color = previous.color;
+    }
+    function tick(now) {
+      if (cancelled) {
+        return;
+      }
+      if (start === 0) {
+        start = now;
+      }
+      const p = Math.min(1, (now - start) / duration);
+      host.style.backgroundPosition = `${from + (to - from) * p}% 0`;
+      if (p >= 1) {
+        cancelled = true;
+        restore();
+        if (options.onDone) {
+          options.onDone();
+        }
+        resolveFinished();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        if (raf !== null) {
+          cancelAnimationFrame(raf);
+        }
+        restore();
+        resolveFinished();
+      }
+    };
+  }
+
+  // src/effects/matrix2.js
+  var KATAKANA = "\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789ABCDEF";
+  function matrix2(target, options = {}) {
+    const host = resolveTarget(target);
+    const duration = options.duration || 1500;
+    const fontSize = options.fontSize || 20;
+    const color = options.color || "#00ff00";
+    const glyphs = options.glyphs || KATAKANA;
+    const parent = host.parentNode || host;
+    const previousPosition = parent.style.position;
+    if (getComputedStyle(parent).position === "static") {
+      parent.style.position = "relative";
+    }
+    const hostStyle = getComputedStyle(host);
+    const canvas = document.createElement("canvas");
+    const width = host.offsetWidth;
+    const height = host.offsetHeight;
+    canvas.width = Math.max(1, width);
+    canvas.height = Math.max(1, height);
+    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    canvas.style.borderTopLeftRadius = hostStyle.borderTopLeftRadius;
+    canvas.style.borderTopRightRadius = hostStyle.borderTopRightRadius;
+    canvas.style.borderBottomRightRadius = hostStyle.borderBottomRightRadius;
+    canvas.style.borderBottomLeftRadius = hostStyle.borderBottomLeftRadius;
+    parent.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const columnCount = Math.max(1, Math.floor(canvas.width / fontSize));
+    const columns = [];
+    for (let i = 0; i < columnCount; i += 1) {
+      columns.push(Math.random() * -100);
+    }
+    let raf = null;
+    let cancelled = false;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    function cleanup() {
+      if (raf !== null) {
+        cancelAnimationFrame(raf);
+        raf = null;
+      }
+      if (canvas.parentNode) {
+        canvas.parentNode.removeChild(canvas);
+      }
+      parent.style.position = previousPosition;
+    }
+    function finish() {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      cleanup();
+      if (options.onDone) {
+        options.onDone();
+      }
+      resolveFinished();
+    }
+    function fadeOut() {
+      let opacity = 1;
+      function fade() {
+        if (cancelled) {
+          return;
+        }
+        opacity -= 0.1;
+        if (opacity <= 0) {
+          finish();
+          return;
+        }
+        canvas.style.opacity = String(opacity);
+        raf = requestAnimationFrame(fade);
+      }
+      fade();
+    }
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const start = performance.now();
+    function draw(now) {
+      if (cancelled) {
+        return;
+      }
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = color;
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < columns.length; i += 1) {
+        const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
+        const x = i * fontSize;
+        const y = columns[i] * fontSize;
+        ctx.fillText(glyph, x, y);
+        if (y > canvas.height && Math.random() > 0.975) {
+          columns[i] = 0;
+        }
+        columns[i] += 1;
+      }
+      if (now - start < duration) {
+        raf = requestAnimationFrame(draw);
+      } else {
+        fadeOut();
+      }
+    }
+    raf = requestAnimationFrame(draw);
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        cleanup();
         resolveFinished();
       }
     };
@@ -1851,7 +2161,399 @@ var RetroTextEffects = (() => {
     });
   }
 
+  // src/effects/binarypath.js
+  function binarypath(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const travelers = stage.targets.map((t) => {
+        const fromLeft = Math.random() < 0.5;
+        const startX = fromLeft ? -40 : stage.width + 40;
+        const startY = Math.random() * stage.height;
+        const legX = Math.abs(t.x - startX);
+        const legY = Math.abs(t.y - startY);
+        return {
+          t,
+          startX,
+          startY,
+          legX,
+          legY,
+          length: legX + legY,
+          pxPerSec: (260 + Math.random() * 200) * speed,
+          delay: randInt(0, Math.round(900 / speed)),
+          bit: Math.random() < 0.5 ? 0 : 1,
+          arrived: false
+        };
+      });
+      return (elapsed) => {
+        stage.clear();
+        let moving = 0;
+        for (const tr of travelers) {
+          if (tr.arrived) {
+            stage.drawChar(tr.t.ch, tr.t.x, tr.t.y);
+            continue;
+          }
+          moving += 1;
+          if (elapsed < tr.delay) {
+            continue;
+          }
+          const dist = (elapsed - tr.delay) / 1e3 * tr.pxPerSec;
+          if (dist >= tr.length) {
+            tr.arrived = true;
+            stage.drawChar(tr.t.ch, tr.t.x, tr.t.y);
+            continue;
+          }
+          let x;
+          let y;
+          if (dist < tr.legX) {
+            x = tr.startX + Math.sign(tr.t.x - tr.startX) * dist;
+            y = tr.startY;
+          } else {
+            x = tr.t.x;
+            y = tr.startY + Math.sign(tr.t.y - tr.startY) * (dist - tr.legX);
+          }
+          const glyph = (Math.floor(elapsed / 70) + tr.bit) % 2 === 0 ? "0" : "1";
+          stage.drawChar(glyph, x, y);
+        }
+        return moving > 0;
+      };
+    });
+  }
+
+  // src/effects/crumble.js
+  var DUST = "\xB7";
+  function crumble(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const disperseEnd = 1100 / speed;
+      const reformEnd = disperseEnd + 1400 / speed;
+      const bits = stage.targets.map((t) => ({
+        t,
+        // Streuziel: seitlich verteilt, mit deutlichem Fall nach unten.
+        scatterX: Math.max(-30, Math.min(stage.width + 30, t.x + (Math.random() - 0.5) * stage.width * 0.7)),
+        scatterY: Math.min(stage.height + 30, t.y + 20 + Math.random() * stage.height * 0.5)
+      }));
+      return (elapsed) => {
+        stage.clear();
+        if (elapsed >= reformEnd) {
+          for (const b of bits) {
+            stage.drawChar(b.t.ch, b.t.x, b.t.y);
+          }
+          return false;
+        }
+        if (elapsed < disperseEnd) {
+          const p = clamp01(elapsed / disperseEnd);
+          const e = p * p * p;
+          for (const b of bits) {
+            const x = b.t.x + (b.scatterX - b.t.x) * e;
+            const y = b.t.y + (b.scatterY - b.t.y) * e;
+            stage.drawChar(e < 0.25 ? b.t.ch : DUST, x, y, e < 0.25 ? void 0 : "#8a8a8a");
+          }
+        } else {
+          const p = clamp01((elapsed - disperseEnd) / (reformEnd - disperseEnd));
+          const e = easeOutCubic(p);
+          for (const b of bits) {
+            const x = b.scatterX + (b.t.x - b.scatterX) * e;
+            const y = b.scatterY + (b.t.y - b.scatterY) * e;
+            stage.drawChar(e > 0.7 ? b.t.ch : DUST, x, y, e > 0.7 ? void 0 : "#8a8a8a");
+          }
+        }
+        return true;
+      };
+    });
+  }
+
+  // src/effects/orbittingvolley.js
+  function orbittingvolley(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const cx = stage.width / 2;
+      const cy = stage.height / 2;
+      const radius = Math.hypot(stage.width, stage.height) / 2 + 30;
+      const omega = Math.PI * 2 / 3e3 * speed;
+      const gap = 45 / speed;
+      const travel = 750 / speed;
+      const ordered = stage.targets.slice().sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
+      const shots = ordered.map((t, i) => {
+        const launcher = i % 4;
+        const fireTime = i * gap;
+        const angle = launcher * (Math.PI / 2) + omega * fireTime;
+        return {
+          t,
+          launcher,
+          fireTime,
+          startX: cx + Math.cos(angle) * radius,
+          startY: cy + Math.sin(angle) * radius
+        };
+      });
+      return (elapsed) => {
+        stage.clear();
+        let pending = 0;
+        for (let l = 0; l < 4; l += 1) {
+          const a = l * (Math.PI / 2) + omega * elapsed;
+          const lx = cx + Math.cos(a) * radius;
+          const ly = cy + Math.sin(a) * radius;
+          stage.ctx.fillStyle = SPARK_COLORS[l % SPARK_COLORS.length];
+          stage.ctx.beginPath();
+          stage.ctx.arc(lx, ly, 3, 0, Math.PI * 2);
+          stage.ctx.fill();
+        }
+        for (const s of shots) {
+          if (elapsed < s.fireTime) {
+            pending += 1;
+            continue;
+          }
+          const p = clamp01((elapsed - s.fireTime) / travel);
+          if (p >= 1) {
+            stage.drawChar(s.t.ch, s.t.x, s.t.y);
+            continue;
+          }
+          pending += 1;
+          const e = easeOutCubic(p);
+          const x = s.startX + (s.t.x - s.startX) * e;
+          const y = s.startY + (s.t.y - s.startY) * e;
+          stage.drawChar(s.t.ch, x, y);
+        }
+        return pending > 0;
+      };
+    });
+  }
+
+  // src/effects/smoke.js
+  var PUFFS = 22;
+  function smoke(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const frontSpeed = (stage.width + 140) / 2600 * speed;
+      const puffs = [];
+      for (let i = 0; i < PUFFS; i += 1) {
+        puffs.push({
+          ox: (Math.random() - 0.5) * 150,
+          y: Math.random() * stage.height,
+          r: 34 + Math.random() * 52,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+      return (elapsed) => {
+        stage.clear();
+        const front = -70 + elapsed * frontSpeed;
+        for (const t of stage.targets) {
+          const rowFront = front + Math.sin(t.y * 0.03) * 18;
+          if (t.x <= rowFront) {
+            stage.drawChar(t.ch, t.x, t.y);
+          }
+        }
+        const ctx = stage.ctx;
+        for (const p of puffs) {
+          const px = front + p.ox + Math.sin(elapsed / 500 + p.phase) * 16;
+          const py = p.y + Math.sin(elapsed / 700 + p.phase) * 12;
+          const grad = ctx.createRadialGradient(px, py, 0, px, py, p.r);
+          grad.addColorStop(0, "rgba(170, 175, 185, 0.20)");
+          grad.addColorStop(1, "rgba(170, 175, 185, 0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(px, py, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        return front <= stage.width + 90;
+      };
+    });
+  }
+
+  // src/effects/spotlights.js
+  var SPOTS = 3;
+  function spotlights(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const cx = stage.width / 2;
+      const cy = stage.height / 2;
+      const baseR = Math.min(stage.width, stage.height) * 0.24 + 20;
+      const maxR = Math.hypot(stage.width, stage.height);
+      const searchEnd = 2200 / speed;
+      const convergeEnd = searchEnd + 700 / speed;
+      const expandEnd = convergeEnd + 700 / speed;
+      const spots = [];
+      for (let i = 0; i < SPOTS; i += 1) {
+        spots.push({
+          fx: 11e-4 + i * 4e-4,
+          fy: 14e-4 + i * 5e-4,
+          phx: i / SPOTS * Math.PI * 2,
+          phy: i / SPOTS * Math.PI * 2 + 1
+        });
+      }
+      const roam = (spot, tt) => ({
+        x: cx + Math.sin(tt * spot.fx + spot.phx) * stage.width * 0.36,
+        y: cy + Math.sin(tt * spot.fy + spot.phy) * stage.height * 0.36
+      });
+      return (elapsed) => {
+        stage.clear();
+        const ctx = stage.ctx;
+        let radius = baseR;
+        const positions = spots.map((spot) => {
+          if (elapsed < searchEnd) {
+            return roam(spot, elapsed);
+          }
+          if (elapsed < convergeEnd) {
+            const e = easeOutCubic(clamp01((elapsed - searchEnd) / (convergeEnd - searchEnd)));
+            const s = roam(spot, searchEnd);
+            return { x: s.x + (cx - s.x) * e, y: s.y + (cy - s.y) * e };
+          }
+          return { x: cx, y: cy };
+        });
+        if (elapsed >= convergeEnd) {
+          const e = easeOutCubic(clamp01((elapsed - convergeEnd) / (expandEnd - convergeEnd)));
+          radius = baseR + e * maxR;
+        }
+        for (const pos of positions) {
+          const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+          grad.addColorStop(0, "rgba(255, 255, 240, 0.18)");
+          grad.addColorStop(1, "rgba(255, 255, 240, 0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (const t of stage.targets) {
+          for (const pos of positions) {
+            if (Math.hypot(t.x - pos.x, t.y - pos.y) <= radius) {
+              stage.drawChar(t.ch, t.x, t.y);
+              break;
+            }
+          }
+        }
+        return elapsed < expandEnd;
+      };
+    });
+  }
+
+  // src/effects/synthgrid.js
+  function synthgrid(target, options = {}) {
+    const speed = options.speed || 1;
+    const grid = options.color || "#22d3ee";
+    return animateStage(target, options, (stage) => {
+      const cx = stage.width / 2;
+      const cy = stage.height / 2;
+      const gap = Math.max(18, Math.round(stage.cellW * 2));
+      const cols = [];
+      for (let x = cx % gap; x <= stage.width; x += gap) {
+        cols.push(x);
+      }
+      const rows = [];
+      for (let y = cy % gap; y <= stage.height; y += gap) {
+        rows.push(y);
+      }
+      const gridEnd = 900 / speed;
+      const fillEnd = gridEnd + 1300 / speed;
+      const fadeEnd = fillEnd + 500 / speed;
+      const maxRank = stage.width / stage.cellW + stage.height / stage.cellH;
+      return (elapsed) => {
+        stage.clear();
+        const ctx = stage.ctx;
+        let gridAlpha = 0.55;
+        let build = 1;
+        if (elapsed < gridEnd) {
+          build = easeOutCubic(clamp01(elapsed / gridEnd));
+          gridAlpha = 0.55 * build;
+        } else if (elapsed >= fillEnd) {
+          gridAlpha = 0.55 * (1 - clamp01((elapsed - fillEnd) / (fadeEnd - fillEnd)));
+        }
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = grid;
+        ctx.globalAlpha = gridAlpha;
+        const halfH = stage.height / 2 * build;
+        const halfW = stage.width / 2 * build;
+        ctx.beginPath();
+        for (const x of cols) {
+          ctx.moveTo(x, cy - halfH);
+          ctx.lineTo(x, cy + halfH);
+        }
+        for (const y of rows) {
+          ctx.moveTo(cx - halfW, y);
+          ctx.lineTo(cx + halfW, y);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        if (elapsed >= gridEnd) {
+          const front = easeOutCubic(clamp01((elapsed - gridEnd) / (fillEnd - gridEnd))) * maxRank;
+          for (const t of stage.targets) {
+            const rank = t.x / stage.cellW + t.y / stage.cellH;
+            if (rank <= front) {
+              stage.drawChar(t.ch, t.x, t.y);
+            }
+          }
+        }
+        return elapsed < fadeEnd;
+      };
+    });
+  }
+
+  // src/effects/thunderstorm.js
+  var BOLT_COLOR = "#cfe8ff";
+  function buildBolt(cx, bottom) {
+    const points = [{ x: cx, y: 0 }];
+    let y = 0;
+    while (y < bottom) {
+      y += 8 + Math.random() * 16;
+      points.push({ x: cx + (Math.random() - 0.5) * 26, y: Math.min(y, bottom) });
+    }
+    return points;
+  }
+  function thunderstorm(target, options = {}) {
+    const speed = options.speed || 1;
+    return animateStage(target, options, (stage) => {
+      const sorted = stage.targets.slice().sort((a, b) => a.x - b.x);
+      const nStrikes = Math.min(12, Math.max(6, Math.round(sorted.length / 12)));
+      const chunkSize = Math.ceil(sorted.length / nStrikes);
+      const groups = [];
+      for (let i = 0; i < sorted.length; i += chunkSize) {
+        const chars = sorted.slice(i, i + chunkSize);
+        const centroidX = chars.reduce((s, t) => s + t.x, 0) / chars.length;
+        const bottom = chars.reduce((m, t) => Math.max(m, t.y), 0) + stage.cellH;
+        groups.push({ chars, centroidX, bottom, bolt: null });
+      }
+      const order = groups.map((_, i) => i).sort(() => Math.random() - 0.5);
+      const interval = 260 / speed;
+      order.forEach((groupIndex, position) => {
+        groups[groupIndex].strikeTime = position * interval;
+      });
+      const lastStrike = (nStrikes - 1) * interval;
+      return (elapsed) => {
+        stage.clear();
+        const ctx = stage.ctx;
+        let flash = 0;
+        for (const g of groups) {
+          if (elapsed < g.strikeTime) {
+            continue;
+          }
+          const since = elapsed - g.strikeTime;
+          if (g.bolt === null) {
+            g.bolt = buildBolt(g.centroidX, g.bottom);
+          }
+          const fresh = since < 160;
+          for (const t of g.chars) {
+            stage.drawChar(t.ch, t.x, t.y, fresh ? "#ffffff" : void 0);
+          }
+          if (since < 140) {
+            flash = Math.max(flash, 1 - since / 140);
+            ctx.strokeStyle = BOLT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(g.bolt[0].x, g.bolt[0].y);
+            for (let i = 1; i < g.bolt.length; i += 1) {
+              ctx.lineTo(g.bolt[i].x, g.bolt[i].y);
+            }
+            ctx.stroke();
+          }
+        }
+        if (flash > 0) {
+          ctx.fillStyle = `rgba(160, 190, 255, ${0.14 * flash})`;
+          ctx.fillRect(0, 0, stage.width, stage.height);
+        }
+        return elapsed < lastStrike + 450;
+      };
+    });
+  }
+
   // src/index.js
-  var version = "0.4.1";
+  var version = "0.5.0";
   return __toCommonJS(index_exports);
 })();

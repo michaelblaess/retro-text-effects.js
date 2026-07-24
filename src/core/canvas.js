@@ -79,6 +79,13 @@ export function createStage(target) {
   canvas.style.cssText =
     `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;`
     + `width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+  // Mirror the rounded corners of the target so the opaque black overlay does not
+  // spill out over the host's border-radius. Copy the four longhands individually
+  // because elliptical radii ("12px 8px") break when squeezed into the shorthand.
+  canvas.style.borderTopLeftRadius = style.borderTopLeftRadius;
+  canvas.style.borderTopRightRadius = style.borderTopRightRadius;
+  canvas.style.borderBottomRightRadius = style.borderBottomRightRadius;
+  canvas.style.borderBottomLeftRadius = style.borderBottomLeftRadius;
   parent.appendChild(canvas);
 
   const ctx = canvas.getContext('2d');

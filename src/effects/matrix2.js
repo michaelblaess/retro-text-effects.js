@@ -32,6 +32,7 @@ export function matrix2(target, options = {}) {
     parent.style.position = 'relative';
   }
 
+  const hostStyle = getComputedStyle(host);
   const canvas = document.createElement('canvas');
   const width = host.offsetWidth;
   const height = host.offsetHeight;
@@ -40,6 +41,11 @@ export function matrix2(target, options = {}) {
   canvas.style.cssText =
     `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;`
     + `width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+  // Mirror the target's rounded corners so the opaque overlay does not spill out.
+  canvas.style.borderTopLeftRadius = hostStyle.borderTopLeftRadius;
+  canvas.style.borderTopRightRadius = hostStyle.borderTopRightRadius;
+  canvas.style.borderBottomRightRadius = hostStyle.borderBottomRightRadius;
+  canvas.style.borderBottomLeftRadius = hostStyle.borderBottomLeftRadius;
   parent.appendChild(canvas);
 
   const ctx = canvas.getContext('2d');

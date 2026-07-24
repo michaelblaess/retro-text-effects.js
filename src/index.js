@@ -14,9 +14,14 @@ export { pour } from './effects/pour.js';
 export { slide } from './effects/slide.js';
 export { burn } from './effects/burn.js';
 export { vhstape } from './effects/vhstape.js';
+export { wipe } from './effects/wipe.js';
+export { slice } from './effects/slice.js';
+export { waves } from './effects/waves.js';
 
-// Style effect: persistent CRT treatment (scanlines/glow/flicker), no canvas.
+// Style effects: recolour/light the element in place, no textContent rewrite.
 export { crt } from './effects/crt.js';
+export { colorshift } from './effects/colorshift.js';
+export { highlight } from './effects/highlight.js';
 
 // Canvas effects: an overlay canvas animates the characters in free 2D motion,
 // then fades out and reveals the untouched text.
@@ -37,5 +42,12 @@ export { spray } from './effects/spray.js';
 export { swarm } from './effects/swarm.js';
 export { unstable } from './effects/unstable.js';
 export { rings } from './effects/rings.js';
+export { binarypath } from './effects/binarypath.js';
+export { crumble } from './effects/crumble.js';
+export { orbittingvolley } from './effects/orbittingvolley.js';
+export { smoke } from './effects/smoke.js';
+export { spotlights } from './effects/spotlights.js';
+export { synthgrid } from './effects/synthgrid.js';
+export { thunderstorm } from './effects/thunderstorm.js';
 
-export const version = '0.4.1';
+export const version = '0.5.0';
