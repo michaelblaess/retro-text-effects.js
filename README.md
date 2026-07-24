@@ -14,13 +14,15 @@ shipped as a single file you can drop into any page.
 **[Live demo](https://michaelblaess.github.io/retro-text-effects.js/)** - every effect runs
 right in your browser.
 
-The effects come in two groups:
+The effects come in three groups:
 
 - **Text effects** run on a plain `<pre>` block by rewriting its text content - no canvas,
   the text stays selectable, box-drawing characters stay aligned, and the colour is inherited
   from your element (perfect for an already-green console).
 - **Canvas effects** lay a temporary canvas over the element for free 2D character motion
   (fireworks, black hole, rain, ...), then fade it out and reveal the untouched text below.
+- **Style effects** (`crt`, `colorshift`, `highlight`) recolour or light the element in place
+  without ever touching the text, so they layer cleanly over an already-visible console.
 
 ## Quick start
 
@@ -56,7 +58,9 @@ These only rewrite the element's `textContent`, frame by frame:
 | `slide(el, opts)` | The rows slide in as blocks, alternating from the left and the right. |
 | `burn(el, opts)` | An ember front with a ragged edge eats through the block and burns the text in. |
 | `vhstape(el, opts)` | Glitch bands shift rows sideways and sprinkle noise until the tracking settles. |
-| `crt(el, opts)` | Persistent CRT *style* treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
+| `wipe(el, opts)` | A straight wavefront sweeps across in a chosen direction and leaves the resolved text behind. |
+| `slice(el, opts)` | Each row is cut in half; the two pieces slide inward until they butt together in the middle. |
+| `waves(el, opts)` | An undulating crest rolls across the block and resolves the text as it passes. |
 
 ### Canvas effects
 
@@ -82,6 +86,24 @@ motion, then fade out and reveal the untouched text:
 | `rings(el, opts)` | Characters orbit on concentric spinning rings, then disperse to their positions. |
 | `unstable(el, opts)` | The text shakes, explodes towards the edges and reassembles. |
 | `laseretch(el, opts)` | A laser beam traces the text in and throws off falling sparks. |
+| `binarypath(el, opts)` | Characters enter as streams of `0`/`1` and travel to their spot at right angles, then resolve. |
+| `crumble(el, opts)` | The text crumbles into scattered dust, then the dust is vacuumed up and reforms. |
+| `orbittingvolley(el, opts)` | Four orbiting launchers fire the characters inward, filling the text from the centre out. |
+| `smoke(el, opts)` | A wall of drifting smoke rolls across and leaves the characters colourised behind it. |
+| `spotlights(el, opts)` | Spotlights sweep the dark block, converge on the centre and flood it to reveal the text. |
+| `synthgrid(el, opts)` | A neon grid grows from the centre, the characters fill in diagonally, then the grid fades. |
+| `thunderstorm(el, opts)` | Lightning bolts strike the block one after another, lighting up the text slab by slab. |
+
+### Style effects (no text rewrite)
+
+These recolour or light the element in place - they never touch the `textContent`,
+so they layer cleanly over an already-visible console:
+
+| Effect | What it does |
+| --- | --- |
+| `crt(el, opts)` | Persistent CRT treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
+| `colorshift(el, opts)` | Persistent animated gradient that keeps sliding across the glyphs. `cancel()` removes it. |
+| `highlight(el, opts)` | Runs a single specular highlight across the text, then restores the original colours. |
 
 Each effect returns a small controller:
 
@@ -107,10 +129,13 @@ await fx.finished;  // resolves when the animation ends
 | `band` | number | `6` | `sweep` (width of the noise band) |
 | `duration` | number (ms) | `1500` | `matrix2` |
 | `fontSize` | number | `20` | `matrix2` |
-| `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt` |
+| `color` | string | `#00ff00` / `#33ff33` | `matrix2`, `crt`, `synthgrid`, `highlight` |
 | `scanlineOpacity` | number | `0.15` | `crt` |
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
+| `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
+| `amplitude` | number | `4` | `waves` (how far the crest bends per row) |
+| `colors` | string[] | retro palette | `colorshift` |
 
 All other canvas effects take `speed` and `onDone`; font, colour and character grid
 are read from the target element so the hand-off to the real text is seamless.

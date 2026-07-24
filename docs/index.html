@@ -100,6 +100,9 @@
         <button class="fx-btn" onclick="runFx('slide', '#demo-banner')">slide</button>
         <button class="fx-btn" onclick="runFx('burn', '#demo-banner')">burn</button>
         <button class="fx-btn" onclick="runFx('vhstape', '#demo-banner')">vhstape</button>
+        <button class="fx-btn" onclick="runFx('wipe', '#demo-banner')">wipe</button>
+        <button class="fx-btn" onclick="runFx('slice', '#demo-banner')">slice</button>
+        <button class="fx-btn" onclick="runFx('waves', '#demo-banner')">waves</button>
       </div>
       <div class="fx-bar">
         <span class="fx-label">canvas</span>
@@ -120,11 +123,20 @@
         <button class="fx-btn" onclick="runFx('rings', '#demo-banner')">rings</button>
         <button class="fx-btn" onclick="runFx('unstable', '#demo-banner')">unstable</button>
         <button class="fx-btn" onclick="runFx('laseretch', '#demo-banner')">laseretch</button>
+        <button class="fx-btn" onclick="runFx('binarypath', '#demo-banner')">binarypath</button>
+        <button class="fx-btn" onclick="runFx('crumble', '#demo-banner')">crumble</button>
+        <button class="fx-btn" onclick="runFx('orbittingvolley', '#demo-banner')">orbittingvolley</button>
+        <button class="fx-btn" onclick="runFx('smoke', '#demo-banner')">smoke</button>
+        <button class="fx-btn" onclick="runFx('spotlights', '#demo-banner')">spotlights</button>
+        <button class="fx-btn" onclick="runFx('synthgrid', '#demo-banner')">synthgrid</button>
+        <button class="fx-btn" onclick="runFx('thunderstorm', '#demo-banner')">thunderstorm</button>
       </div>
       <div class="fx-bar">
-        <span class="fx-label">crt</span>
+        <span class="fx-label">style</span>
+        <button class="fx-btn" onclick="runFx('highlight', '#demo-banner')">highlight</button>
+        <button class="fx-btn" onclick="runFx('colorshift', '#demo-banner')">colorshift</button>
         <button class="fx-switch" onclick="toggleCrt('#demo-banner', this)" aria-label="CRT-Modus umschalten"></button>
-        <span class="fx-switch-hint">persistent screen mode - flip it on, flip it off</span>
+        <span class="fx-switch-hint">crt - persistent screen mode, flip it on and off</span>
       </div>
       <pre id="demo-banner" class="term banner">██████  ███████ ████████ ██████   ██████
 ██   ██ ██         ██    ██   ██ ██    ██
@@ -148,6 +160,9 @@
         <button class="fx-btn" onclick="runFx('slide', '#demo-log')">slide</button>
         <button class="fx-btn" onclick="runFx('burn', '#demo-log')">burn</button>
         <button class="fx-btn" onclick="runFx('vhstape', '#demo-log')">vhstape</button>
+        <button class="fx-btn" onclick="runFx('wipe', '#demo-log')">wipe</button>
+        <button class="fx-btn" onclick="runFx('slice', '#demo-log')">slice</button>
+        <button class="fx-btn" onclick="runFx('waves', '#demo-log')">waves</button>
       </div>
       <div class="fx-bar">
         <span class="fx-label">canvas</span>
@@ -168,11 +183,20 @@
         <button class="fx-btn" onclick="runFx('rings', '#demo-log')">rings</button>
         <button class="fx-btn" onclick="runFx('unstable', '#demo-log')">unstable</button>
         <button class="fx-btn" onclick="runFx('laseretch', '#demo-log')">laseretch</button>
+        <button class="fx-btn" onclick="runFx('binarypath', '#demo-log')">binarypath</button>
+        <button class="fx-btn" onclick="runFx('crumble', '#demo-log')">crumble</button>
+        <button class="fx-btn" onclick="runFx('orbittingvolley', '#demo-log')">orbittingvolley</button>
+        <button class="fx-btn" onclick="runFx('smoke', '#demo-log')">smoke</button>
+        <button class="fx-btn" onclick="runFx('spotlights', '#demo-log')">spotlights</button>
+        <button class="fx-btn" onclick="runFx('synthgrid', '#demo-log')">synthgrid</button>
+        <button class="fx-btn" onclick="runFx('thunderstorm', '#demo-log')">thunderstorm</button>
       </div>
       <div class="fx-bar">
-        <span class="fx-label">crt</span>
+        <span class="fx-label">style</span>
+        <button class="fx-btn" onclick="runFx('highlight', '#demo-log')">highlight</button>
+        <button class="fx-btn" onclick="runFx('colorshift', '#demo-log')">colorshift</button>
         <button class="fx-switch" onclick="toggleCrt('#demo-log', this)" aria-label="CRT-Modus umschalten"></button>
-        <span class="fx-switch-hint">persistent screen mode - flip it on, flip it off</span>
+        <span class="fx-switch-hint">crt - persistent screen mode, flip it on and off</span>
       </div>
       <pre id="demo-log" class="term">=== Link scan started ===
 14 domains loaded from blacklist
@@ -193,8 +217,8 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <!-- EFFECTS -->
   <section class="section" id="effects">
     <div class="section-label">Effects</div>
-    <h2 class="section-title">Thirty effects, two flavours</h2>
-    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
+    <h2 class="section-title">Forty-two effects, three flavours</h2>
+    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. <strong>Style effects</strong> (crt, colorshift, highlight) recolour or light the element in place without touching the text. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
 
     <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 12px;">Text effects (no canvas)</h3>
     <div class="api-table-wrap">
@@ -212,7 +236,9 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>slide</code></td><td>The rows slide in as blocks, alternating from the left and the right.</td></tr>
           <tr><td><code>burn</code></td><td>An ember front with a ragged edge burns the text in.</td></tr>
           <tr><td><code>vhstape</code></td><td>Glitch bands shift rows and sprinkle noise until the tracking settles.</td></tr>
-          <tr><td><code>crt</code></td><td>Persistent CRT <em>style</em> treatment: glow, scanlines, flicker. Toggle on, <code>cancel()</code> removes it.</td></tr>
+          <tr><td><code>wipe</code></td><td>A straight wavefront sweeps across in a chosen direction and leaves the text behind.</td></tr>
+          <tr><td><code>slice</code></td><td>Each row is cut in half and the two pieces slide inward until they meet in the middle.</td></tr>
+          <tr><td><code>waves</code></td><td>An undulating crest rolls across the block, resolving the text as it passes.</td></tr>
         </tbody>
       </table>
     </div>
@@ -238,6 +264,24 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>rings</code></td><td>Characters orbit on concentric spinning rings, then disperse to their positions.</td></tr>
           <tr><td><code>unstable</code></td><td>The text shakes, explodes towards the edges and reassembles.</td></tr>
           <tr><td><code>laseretch</code></td><td>A laser beam traces the text in and throws off falling sparks.</td></tr>
+          <tr><td><code>binarypath</code></td><td>Characters enter as streams of 0s and 1s and travel to their spot at right angles.</td></tr>
+          <tr><td><code>crumble</code></td><td>The text crumbles into scattered dust, then the dust is vacuumed up and reforms.</td></tr>
+          <tr><td><code>orbittingvolley</code></td><td>Four orbiting launchers fire the characters inward, filling the text from the centre out.</td></tr>
+          <tr><td><code>smoke</code></td><td>A wall of drifting smoke rolls across and leaves the characters colourised behind it.</td></tr>
+          <tr><td><code>spotlights</code></td><td>Spotlights sweep the dark block, converge on the centre and flood it to reveal the text.</td></tr>
+          <tr><td><code>synthgrid</code></td><td>A neon grid grows from the centre, the characters fill in diagonally, then the grid fades.</td></tr>
+          <tr><td><code>thunderstorm</code></td><td>Lightning bolts strike the block one after another, lighting up the text slab by slab.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 12px;">Style effects (no text rewrite)</h3>
+    <div class="api-table-wrap">
+      <table class="api-table">
+        <tbody>
+          <tr><td><code>crt</code></td><td>Persistent CRT treatment: glow, scanlines, flicker. Toggle on, <code>cancel()</code> removes it.</td></tr>
+          <tr><td><code>colorshift</code></td><td>Persistent animated gradient that keeps sliding across the glyphs. <code>cancel()</code> removes it.</td></tr>
+          <tr><td><code>highlight</code></td><td>Runs a single specular highlight across the text, then restores the original colours.</td></tr>
         </tbody>
       </table>
     </div>
