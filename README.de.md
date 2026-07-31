@@ -113,10 +113,10 @@ nie an und legen sich sauber über eine bereits sichtbare Konsole:
 
 ### Art-Effekte (der Text wird erzeugt)
 
-`aura` fällt gleich doppelt aus der Reihe. Der Effekt liest nicht den Text des Elements,
-sondern rastert ein Unicode-Zeichen auf einem Offscreen-Canvas, übersetzt die Zellen in eine
-Zeichenrampe und legt einen bewegten Ring aus Terminalzeichen um die Figur. Wie `crt` ist er
-dauerhaft - er läuft, bis `cancel()` ihn beendet.
+`aura` funktioniert gleich in zwei Punkten anders als alle anderen Effekte. Er liest nicht den
+Text des Elements, sondern rastert ein Unicode-Zeichen auf einem Offscreen-Canvas, übersetzt
+die Zellen in eine Zeichenrampe und legt einen bewegten Ring aus Terminalzeichen um die Figur.
+Wie `crt` ist er dauerhaft - er läuft, bis `cancel()` ihn beendet.
 
 Er ist außerdem der einzige Effekt hier, der **nicht** zum TTE-Port gehört: In
 TerminalTextEffects gibt es keine Entsprechung. Die Idee stammt vom animierten ASCII-Geist auf
