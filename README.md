@@ -110,10 +110,15 @@ so they layer cleanly over an already-visible console:
 
 ### Art effects (the text is generated)
 
-`aura` is the odd one out. It does not read the element's text, it rasterises a Unicode
-glyph on an offscreen canvas, translates the cells into a character ramp and wraps the
-figure in a ring of terminal characters that keeps moving. Like `crt` it is persistent -
+`aura` is the odd one out twice over. It does not read the element's text, it rasterises a
+Unicode glyph on an offscreen canvas, translates the cells into a character ramp and wraps
+the figure in a ring of terminal characters that keeps moving. Like `crt` it is persistent -
 it runs until `cancel()`.
+
+It is also the only effect here that is **not** part of the TTE port: TerminalTextEffects has
+no counterpart for it. The idea comes from the animated ASCII ghost on
+[ghostty.org](https://ghostty.org/), the website of the Ghostty terminal emulator. Rebuilt
+from scratch for arbitrary glyphs, no code taken from there.
 
 | Effect | What it does |
 | --- | --- |
