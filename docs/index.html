@@ -34,6 +34,34 @@
       text-shadow: 0 0 5px rgba(51,255,51,.45); border: 1px solid #123012; min-height: 3em;
     }
     .term.banner { color: #35d0ff; text-shadow: 0 0 6px rgba(53,208,255,.5); font-size: 13px; line-height: 1.15; }
+    /* Emoji art playground */
+    .emoji-btn {
+      font-size: 18px; line-height: 1; background: var(--bg-secondary);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 5px 7px; cursor: pointer; transition: all var(--transition);
+    }
+    .emoji-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .emoji-btn.active { border-color: var(--accent); background: var(--accent-muted); }
+    .art-input {
+      font-family: var(--font-display); font-size: 20px; line-height: 1; width: 66px;
+      text-align: center; padding: 7px 6px; background: var(--bg-secondary);
+      color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+    .tint-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 7px 13px 7px 9px; cursor: pointer;
+      transition: all var(--transition);
+    }
+    .tint-btn:hover { color: var(--text-primary); border-color: var(--border-hover); }
+    .tint-btn.active { color: var(--text-primary); border-color: var(--accent); background: var(--accent-muted); }
+    .tint-btn .bead { width: 11px; height: 11px; border-radius: 50%; background: var(--bead); box-shadow: 0 0 7px var(--bead); }
+    .fx-range { accent-color: var(--accent); width: 128px; cursor: pointer; }
+    .fx-out { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; min-width: 32px; }
+    .aura-stage { display: block; min-height: 320px; padding: 26px 16px; }
+    .art-note { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); margin-top: 10px; }
+
     .api-table-wrap { overflow-x: auto; margin-top: 24px; }
     .api-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     .api-table th { text-align: left; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; border-bottom: 2px solid var(--border); }
@@ -53,6 +81,7 @@
     </div>
     <div class="header-right">
       <a href="#demo" class="header-link">Demo</a>
+      <a href="#art" class="header-link">Emoji art</a>
       <a href="#effects" class="header-link">Effects</a>
       <a href="#usage" class="header-link">Usage</a>
       <a href="https://github.com/michaelblaess/retro-text-effects.js" class="header-link">GitHub</a>
@@ -65,7 +94,7 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.4.0</div>
+    <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.6.0</div>
     <h1>retro-text-effects<span class="accent">.js</span></h1>
     <p class="hero-description">A <strong>browser port of <a href="https://github.com/ChrisBuilds/terminaltexteffects" style="color: var(--accent);">TerminalTextEffects (TTE)</a></strong>, the Python terminal-effects library - rebuilt in vanilla JavaScript. Thirty text and canvas effects, no dependencies, no external requests, one self-contained file you can drop into any page.</p>
     <div class="hero-actions">
@@ -214,11 +243,53 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
 
   <div class="divider"><div class="divider-line"></div></div>
 
+  <!-- EMOJI ART -->
+  <section class="section" id="art" style="padding-bottom: 8px;">
+    <div class="section-label">Emoji art</div>
+    <h2 class="section-title">Any emoji, as a glowing ASCII figure</h2>
+    <p class="section-description">The <code style="color: var(--accent);">aura</code> effect is the odd one out: it does not read text from the page, it <strong>generates</strong> it. A Unicode glyph is rasterised on a canvas, translated into a character ramp and wrapped in a ring of terminal characters that keeps moving. Pick a glyph, an aura and a colour - and let it hop or spin.</p>
+  </section>
+
+  <div class="demo">
+    <div class="demo-block">
+      <div class="fx-bar" data-row="faces"><span class="fx-label">faces</span></div>
+      <div class="fx-bar" data-row="creatures"><span class="fx-label">animals</span></div>
+      <div class="fx-bar" data-row="nature"><span class="fx-label">nature</span></div>
+      <div class="fx-bar" data-row="objects"><span class="fx-label">objects</span></div>
+      <div class="fx-bar" data-row="symbols"><span class="fx-label">symbols</span></div>
+
+      <div class="fx-bar">
+        <span class="fx-label">your own</span>
+        <input class="art-input" id="art-input" type="text" value="&#128123;" aria-label="Type any emoji" autocomplete="off" spellcheck="false">
+        <span class="fx-switch-hint">type or paste any character</span>
+      </div>
+
+      <div class="fx-bar" id="art-variants"><span class="fx-label">aura</span></div>
+      <div class="fx-bar" id="art-motions"><span class="fx-label">motion</span></div>
+      <div class="fx-bar" id="art-tints"><span class="fx-label">colour</span></div>
+
+      <div class="fx-bar">
+        <span class="fx-label">width</span>
+        <input class="fx-range" id="art-width" type="range" min="2" max="7" step="0.5" value="4.5" aria-label="Aura width">
+        <span class="fx-out" id="art-width-out">4.5</span>
+        <span class="fx-label" style="min-width: 42px;">speed</span>
+        <input class="fx-range" id="art-speed" type="range" min="0.2" max="2.5" step="0.1" value="1" aria-label="Speed">
+        <span class="fx-out" id="art-speed-out">1.0x</span>
+        <button class="fx-btn" id="art-copy" onclick="copyArt(this)">copy as text</button>
+      </div>
+
+      <div id="aura-stage" class="term aura-stage"></div>
+      <p class="art-note">Emoji fonts are platform specific - the same glyph is drawn by Segoe UI Emoji on Windows, Apple Color Emoji on macOS and Noto elsewhere, so the silhouette differs per system.</p>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div></div>
+
   <!-- EFFECTS -->
   <section class="section" id="effects">
     <div class="section-label">Effects</div>
-    <h2 class="section-title">Forty-two effects, three flavours</h2>
-    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. <strong>Style effects</strong> (crt, colorshift, highlight) recolour or light the element in place without touching the text. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
+    <h2 class="section-title">Forty-three effects, four flavours</h2>
+    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. <strong>Style effects</strong> (crt, colorshift, highlight) recolour or light the element in place without touching the text. <strong>Art effects</strong> (aura) are the exception: they generate the text from a Unicode glyph instead of reading it from the page. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
 
     <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 12px;">Text effects (no canvas)</h3>
     <div class="api-table-wrap">
@@ -285,6 +356,16 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
         </tbody>
       </table>
     </div>
+
+    <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 12px;">Art effects (the text is generated)</h3>
+    <div class="api-table-wrap">
+      <table class="api-table">
+        <tbody>
+          <tr><td><code>aura</code></td><td>Turns a Unicode glyph into an ASCII figure and wraps it in a moving ring of characters. Persistent: it keeps running until <code>cancel()</code>.</td></tr>
+          <tr><td><code>asciiArt</code></td><td>Not an effect but a plain function: <code>asciiArt('&#127875;')</code> returns the art as a string, ready to feed into decrypt, matrix or print.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
   <div class="divider"><div class="divider-line"></div></div>
@@ -300,6 +381,14 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   RetroTextEffects.print('#banner', { cps: 80 });
   RetroTextEffects.fireworks('#log', { speed: 1.2 });
   const screen = RetroTextEffects.crt('#log');  // screen.cancel() removes it
+
+  // Art effect: the glyph becomes the text, and it keeps running
+  const ghost = RetroTextEffects.aura('#stage', { emoji: '&#128123;', cols: 46 });
+  ghost.update({ variant: 'sonar', motion: 'spin', color: '#35d0ff' });
+
+  // ... or just take the art as a string and hand it to any other effect
+  document.querySelector('#stage').textContent = RetroTextEffects.asciiArt('&#127875;');
+  RetroTextEffects.decrypt('#stage');
 &lt;/script&gt;</pre>
 
     <div class="api-table-wrap">
@@ -322,11 +411,17 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>scanlineOpacity</code></td><td>number</td><td><code>0.15</code></td><td>crt</td></tr>
           <tr><td><code>glow</code></td><td>boolean</td><td><code>true</code></td><td>crt</td></tr>
           <tr><td><code>flicker</code></td><td>boolean</td><td><code>true</code></td><td>crt</td></tr>
+          <tr><td><code>emoji</code></td><td>string</td><td><code>&#128123;</code></td><td>aura</td></tr>
+          <tr><td><code>cols</code></td><td>number</td><td><code>40</code></td><td>aura, asciiArt</td></tr>
+          <tr><td><code>variant</code></td><td>string</td><td><code>shimmer</code></td><td>aura</td></tr>
+          <tr><td><code>motion</code></td><td>string</td><td><code>float</code></td><td>aura</td></tr>
+          <tr><td><code>width</code></td><td>number</td><td><code>4.5</code></td><td>aura</td></tr>
+          <tr><td><code>fit</code></td><td>boolean</td><td><code>true</code></td><td>aura</td></tr>
         </tbody>
       </table>
     </div>
     <p style="text-align: center; color: var(--text-tertiary); font-size: 0.8rem; margin-top: 16px;">
-      Each effect takes an element or a CSS selector and returns <code style="color: var(--accent);">{ finished, cancel }</code>.
+      Each effect takes an element or a CSS selector and returns <code style="color: var(--accent);">{ finished, cancel }</code>. <code style="color: var(--accent);">aura</code> adds <code style="color: var(--accent);">update()</code> and <code style="color: var(--accent);">text()</code>.
     </p>
   </section>
 
@@ -341,7 +436,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <span class="stack-badge">Zero dependencies</span>
       <span class="stack-badge">esbuild</span>
       <span class="stack-badge">Single file</span>
-      <span class="stack-badge">~25 KB minified</span>
+      <span class="stack-badge">~43 KB minified</span>
     </div>
   </section>
 
@@ -408,9 +503,213 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       }
     }
 
+    // --- Emoji art playground ------------------------------------------------
+    var EMOJI_ROWS = {
+      faces: ['😀', '😎', '🤖', '👽', '💀', '🤡', '👻', '😈', '🥶', '🤯', '😺', '🙀'],
+      creatures: ['🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🦖', '🐢', '🦉', '🦇', '🐝', '🦋', '🐧', '🦀', '🐳', '🦅'],
+      nature: ['🌵', '🍄', '🌻', '🌙', '⭐', '⚡', '🔥', '❄️', '🌊', '🍁', '🌲', '🍎'],
+      objects: ['🚀', '🛸', '🎃', '💎', '🔑', '☕', '🍕', '🍺', '🎸', '📻', '💾', '🕹️', '📺', '⏰', '🔮', '🧪'],
+      symbols: ['❤️', '♠️', '☠️', '⚓', '⚙️', '⚠️', '♻️', '☢️', '⚛️', '✨', '☯️', '⚔️']
+    };
+
+    var TINTS = [
+      { name: 'phosphor', hex: '#33ff33' },
+      { name: 'amber', hex: '#ffb000' },
+      { name: 'indigo', hex: '#7c86f5' },
+      { name: 'cyan', hex: '#35d0ff' },
+      { name: 'magenta', hex: '#ff5fd2' },
+      { name: 'paper', hex: '#e8ecf1' }
+    ];
+
+    var VARIANT_HINT = {
+      shimmer: 'every cell flickers on its own',
+      pulse: 'brightness follows the distance and breathes outward',
+      sonar: 'rings leave the figure one after another',
+      orbit: 'an arc of light circles the figure',
+      updraft: 'a noise field drifts upward like heat',
+      halo: 'no movement, just the stepped distance'
+    };
+
+    var MOTION_HINT = {
+      off: 'the figure stands still',
+      float: 'tilts and hops by whole rows',
+      spin: 'squeezed by a cosine, like a flipping coin'
+    };
+
+    var auraHandle = null;
+    var artEmoji = '👻';
+
+    // Marks the clicked button and clears its siblings in the same bar.
+    function markActive(btn) {
+      var siblings = btn.parentNode.querySelectorAll('button');
+      for (var i = 0; i < siblings.length; i += 1) {
+        siblings[i].classList.remove('active');
+      }
+      btn.classList.add('active');
+    }
+
+    function markEmoji(value) {
+      var all = document.querySelectorAll('.emoji-btn');
+      for (var i = 0; i < all.length; i += 1) {
+        all[i].classList.toggle('active', all[i].textContent === value);
+      }
+    }
+
+    function setArtEmoji(value, btn) {
+      artEmoji = value;
+      document.getElementById('art-input').value = value;
+      markEmoji(value);
+      if (btn) {
+        btn.classList.add('active');
+      }
+      if (auraHandle) {
+        auraHandle.update({ emoji: value });
+      }
+    }
+
+    // Grapheme-aware so multi-codepoint emoji (hearts, flags, ZWJ) stay in one piece.
+    function firstGrapheme(text) {
+      var trimmed = text.trim();
+      if (!trimmed) {
+        return '';
+      }
+      if (window.Intl && Intl.Segmenter) {
+        var step = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+          .segment(trimmed)[Symbol.iterator]().next();
+        return step.done ? trimmed : step.value.segment;
+      }
+      return trimmed;
+    }
+
+    function copyArt(btn) {
+      if (!auraHandle) {
+        return;
+      }
+      var text = auraHandle.text();
+      var done = function (ok) {
+        btn.textContent = ok ? 'copied' : 'copy blocked';
+        setTimeout(function () { btn.textContent = 'copy as text'; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+        return;
+      }
+      var area = document.createElement('textarea');
+      area.value = text;
+      area.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(area);
+      area.select();
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (err) {
+        ok = false;
+      }
+      document.body.removeChild(area);
+      done(ok);
+    }
+
+    function buildArtControls() {
+      Object.keys(EMOJI_ROWS).forEach(function (row) {
+        var bar = document.querySelector('.fx-bar[data-row="' + row + '"]');
+        EMOJI_ROWS[row].forEach(function (emoji) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'emoji-btn' + (emoji === artEmoji ? ' active' : '');
+          btn.textContent = emoji;
+          btn.setAttribute('aria-label', 'Render ' + emoji);
+          btn.onclick = function () { setArtEmoji(emoji, btn); };
+          bar.appendChild(btn);
+        });
+      });
+
+      var variantBar = document.getElementById('art-variants');
+      RetroTextEffects.auraVariants.forEach(function (key, index) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fx-btn' + (index === 0 ? ' active' : '');
+        btn.textContent = key;
+        btn.title = VARIANT_HINT[key] || '';
+        btn.onclick = function () {
+          markActive(btn);
+          auraHandle.update({ variant: key });
+        };
+        variantBar.appendChild(btn);
+      });
+
+      var motionBar = document.getElementById('art-motions');
+      RetroTextEffects.auraMotions.forEach(function (key) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fx-btn' + (key === 'float' ? ' active' : '');
+        btn.textContent = key === 'off' ? 'still' : key;
+        btn.title = MOTION_HINT[key] || '';
+        btn.onclick = function () {
+          markActive(btn);
+          auraHandle.update({ motion: key });
+        };
+        motionBar.appendChild(btn);
+      });
+
+      var tintBar = document.getElementById('art-tints');
+      TINTS.forEach(function (tint, index) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tint-btn' + (index === 0 ? ' active' : '');
+        btn.style.setProperty('--bead', tint.hex);
+        var bead = document.createElement('span');
+        bead.className = 'bead';
+        btn.appendChild(bead);
+        btn.appendChild(document.createTextNode(tint.name));
+        btn.onclick = function () {
+          markActive(btn);
+          auraHandle.update({ color: tint.hex });
+        };
+        tintBar.appendChild(btn);
+      });
+
+      document.getElementById('art-input').addEventListener('input', function () {
+        var value = firstGrapheme(this.value);
+        if (value && value !== artEmoji) {
+          setArtEmoji(value);
+        }
+      });
+
+      var width = document.getElementById('art-width');
+      width.addEventListener('input', function () {
+        document.getElementById('art-width-out').textContent = parseFloat(width.value).toFixed(1);
+        auraHandle.update({ width: parseFloat(width.value) });
+      });
+
+      var speed = document.getElementById('art-speed');
+      speed.addEventListener('input', function () {
+        document.getElementById('art-speed-out').textContent = parseFloat(speed.value).toFixed(1) + 'x';
+        auraHandle.update({ speed: parseFloat(speed.value) });
+      });
+    }
+
+    function startAura() {
+      auraHandle = RetroTextEffects.aura('#aura-stage', {
+        emoji: artEmoji,
+        cols: 46,
+        variant: 'shimmer',
+        motion: 'float',
+        color: TINTS[0].hex
+      });
+      buildArtControls();
+    }
+
     // First impression: decrypt the banner once everything is loaded.
     window.addEventListener('load', function () {
       runFx('decrypt', '#demo-banner');
+
+      // The cell raster is derived from the real font metrics, so wait for the
+      // webfont - measuring the fallback would squeeze the figure.
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(startAura);
+      } else {
+        startAura();
+      }
     });
   </script>
 </body>

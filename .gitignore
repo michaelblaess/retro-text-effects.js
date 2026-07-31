@@ -2,6 +2,11 @@ node_modules/
 *.log
 .DS_Store
 
+# Local only: design notes and the standalone prototype the aura effect grew out
+# of. The maintained demo is docs/index.html.
+PLAN-*.md
+prototypes/
+
 # Not committed: generated against the local (corporate) registry, so the
 # resolved URLs would leak an internal host. CI installs from the public registry.
 package-lock.json

@@ -21,6 +21,12 @@ var RetroTextEffects = (() => {
   // src/index.js
   var index_exports = {};
   __export(index_exports, {
+    AURA_RAMP: () => AURA_RAMP,
+    BODY_RAMP: () => BODY_RAMP,
+    asciiArt: () => asciiArt,
+    aura: () => aura,
+    auraMotions: () => auraMotions,
+    auraVariants: () => auraVariants,
     beams: () => beams,
     binarypath: () => binarypath,
     blackhole: () => blackhole,
@@ -817,20 +823,20 @@ var RetroTextEffects = (() => {
     const width = Math.max(1, host.offsetWidth);
     const height = Math.max(1, host.offsetHeight);
     const dpr = window.devicePixelRatio || 1;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(width * dpr));
-    canvas.height = Math.max(1, Math.round(height * dpr));
-    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
-    canvas.style.borderTopLeftRadius = style.borderTopLeftRadius;
-    canvas.style.borderTopRightRadius = style.borderTopRightRadius;
-    canvas.style.borderBottomRightRadius = style.borderBottomRightRadius;
-    canvas.style.borderBottomLeftRadius = style.borderBottomLeftRadius;
-    parent.appendChild(canvas);
-    const ctx = canvas.getContext("2d");
-    ctx.scale(dpr, dpr);
-    ctx.font = font;
-    ctx.textBaseline = "top";
-    const cellW = ctx.measureText("M").width || fontSize * 0.6;
+    const canvas2 = document.createElement("canvas");
+    canvas2.width = Math.max(1, Math.round(width * dpr));
+    canvas2.height = Math.max(1, Math.round(height * dpr));
+    canvas2.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    canvas2.style.borderTopLeftRadius = style.borderTopLeftRadius;
+    canvas2.style.borderTopRightRadius = style.borderTopRightRadius;
+    canvas2.style.borderBottomRightRadius = style.borderBottomRightRadius;
+    canvas2.style.borderBottomLeftRadius = style.borderBottomLeftRadius;
+    parent.appendChild(canvas2);
+    const ctx2 = canvas2.getContext("2d");
+    ctx2.scale(dpr, dpr);
+    ctx2.font = font;
+    ctx2.textBaseline = "top";
+    const cellW = ctx2.measureText("M").width || fontSize * 0.6;
     const targets = [];
     const rows = toLines(finalText);
     for (let r = 0; r < rows.length; r += 1) {
@@ -842,8 +848,8 @@ var RetroTextEffects = (() => {
       }
     }
     return {
-      ctx,
-      canvas,
+      ctx: ctx2,
+      canvas: canvas2,
       width,
       height,
       cellW,
@@ -851,18 +857,18 @@ var RetroTextEffects = (() => {
       color,
       targets,
       clear(alpha) {
-        ctx.fillStyle = alpha === void 0 ? "#000000" : `rgba(0, 0, 0, ${alpha})`;
-        ctx.fillRect(0, 0, width, height);
+        ctx2.fillStyle = alpha === void 0 ? "#000000" : `rgba(0, 0, 0, ${alpha})`;
+        ctx2.fillRect(0, 0, width, height);
       },
       drawChar(ch, x, y, fill) {
-        ctx.font = font;
-        ctx.textBaseline = "top";
-        ctx.fillStyle = fill || color;
-        ctx.fillText(ch, x, y);
+        ctx2.font = font;
+        ctx2.textBaseline = "top";
+        ctx2.fillStyle = fill || color;
+        ctx2.fillText(ch, x, y);
       },
       remove() {
-        if (canvas.parentNode) {
-          canvas.parentNode.removeChild(canvas);
+        if (canvas2.parentNode) {
+          canvas2.parentNode.removeChild(canvas2);
         }
         parent.style.position = previousPosition;
       }
@@ -1034,18 +1040,12 @@ var RetroTextEffects = (() => {
     );
   }
 
-  // src/effects/crt.js
-  var STYLE_ID = "rte-crt-style";
-  function ensureFlickerStyle() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
+  // src/core/color.js
+  function toRgba(color, alpha) {
+    const parts = color.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i);
+    if (parts !== null) {
+      return `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${alpha})`;
     }
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
-    document.head.appendChild(style);
-  }
-  function toGlow(color, alpha) {
     const hex = color.replace("#", "");
     let r;
     let g;
@@ -1063,6 +1063,18 @@ var RetroTextEffects = (() => {
     }
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
+
+  // src/effects/crt.js
+  var STYLE_ID = "rte-crt-style";
+  function ensureFlickerStyle() {
+    if (document.getElementById(STYLE_ID)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = "@keyframes rte-crt-flicker{0%{opacity:.97}50%{opacity:1}100%{opacity:.98}}";
+    document.head.appendChild(style);
+  }
   function crt(target, options = {}) {
     const host = resolveTarget(target);
     const color = options.color || "#33ff33";
@@ -1075,7 +1087,7 @@ var RetroTextEffects = (() => {
       animation: host.style.animation
     };
     if (glow) {
-      host.style.textShadow = `0 0 5px ${toGlow(color, 0.5)}, 0 0 10px ${toGlow(color, 0.3)}`;
+      host.style.textShadow = `0 0 5px ${toRgba(color, 0.5)}, 0 0 10px ${toRgba(color, 0.3)}`;
     }
     if (flicker) {
       host.style.animation = "rte-crt-flicker 0.15s infinite alternate";
@@ -1264,19 +1276,19 @@ var RetroTextEffects = (() => {
       parent.style.position = "relative";
     }
     const hostStyle = getComputedStyle(host);
-    const canvas = document.createElement("canvas");
+    const canvas2 = document.createElement("canvas");
     const width = host.offsetWidth;
     const height = host.offsetHeight;
-    canvas.width = Math.max(1, width);
-    canvas.height = Math.max(1, height);
-    canvas.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
-    canvas.style.borderTopLeftRadius = hostStyle.borderTopLeftRadius;
-    canvas.style.borderTopRightRadius = hostStyle.borderTopRightRadius;
-    canvas.style.borderBottomRightRadius = hostStyle.borderBottomRightRadius;
-    canvas.style.borderBottomLeftRadius = hostStyle.borderBottomLeftRadius;
-    parent.appendChild(canvas);
-    const ctx = canvas.getContext("2d");
-    const columnCount = Math.max(1, Math.floor(canvas.width / fontSize));
+    canvas2.width = Math.max(1, width);
+    canvas2.height = Math.max(1, height);
+    canvas2.style.cssText = `position:absolute;left:${host.offsetLeft}px;top:${host.offsetTop}px;width:${width}px;height:${height}px;z-index:10;pointer-events:none;`;
+    canvas2.style.borderTopLeftRadius = hostStyle.borderTopLeftRadius;
+    canvas2.style.borderTopRightRadius = hostStyle.borderTopRightRadius;
+    canvas2.style.borderBottomRightRadius = hostStyle.borderBottomRightRadius;
+    canvas2.style.borderBottomLeftRadius = hostStyle.borderBottomLeftRadius;
+    parent.appendChild(canvas2);
+    const ctx2 = canvas2.getContext("2d");
+    const columnCount = Math.max(1, Math.floor(canvas2.width / fontSize));
     const columns = [];
     for (let i = 0; i < columnCount; i += 1) {
       columns.push(Math.random() * -100);
@@ -1292,8 +1304,8 @@ var RetroTextEffects = (() => {
         cancelAnimationFrame(raf);
         raf = null;
       }
-      if (canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas);
+      if (canvas2.parentNode) {
+        canvas2.parentNode.removeChild(canvas2);
       }
       parent.style.position = previousPosition;
     }
@@ -1319,28 +1331,28 @@ var RetroTextEffects = (() => {
           finish();
           return;
         }
-        canvas.style.opacity = String(opacity);
+        canvas2.style.opacity = String(opacity);
         raf = requestAnimationFrame(fade);
       }
       fade();
     }
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx2.fillStyle = "#000000";
+    ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
     const start = performance.now();
     function draw(now) {
       if (cancelled) {
         return;
       }
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = color;
-      ctx.font = `${fontSize}px monospace`;
+      ctx2.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+      ctx2.fillStyle = color;
+      ctx2.font = `${fontSize}px monospace`;
       for (let i = 0; i < columns.length; i += 1) {
         const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
         const x = i * fontSize;
         const y = columns[i] * fontSize;
-        ctx.fillText(glyph, x, y);
-        if (y > canvas.height && Math.random() > 0.975) {
+        ctx2.fillText(glyph, x, y);
+        if (y > canvas2.height && Math.random() > 0.975) {
           columns[i] = 0;
         }
         columns[i] += 1;
@@ -2342,17 +2354,17 @@ var RetroTextEffects = (() => {
             stage.drawChar(t.ch, t.x, t.y);
           }
         }
-        const ctx = stage.ctx;
+        const ctx2 = stage.ctx;
         for (const p of puffs) {
           const px = front + p.ox + Math.sin(elapsed / 500 + p.phase) * 16;
           const py = p.y + Math.sin(elapsed / 700 + p.phase) * 12;
-          const grad = ctx.createRadialGradient(px, py, 0, px, py, p.r);
+          const grad = ctx2.createRadialGradient(px, py, 0, px, py, p.r);
           grad.addColorStop(0, "rgba(170, 175, 185, 0.20)");
           grad.addColorStop(1, "rgba(170, 175, 185, 0)");
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(px, py, p.r, 0, Math.PI * 2);
-          ctx.fill();
+          ctx2.fillStyle = grad;
+          ctx2.beginPath();
+          ctx2.arc(px, py, p.r, 0, Math.PI * 2);
+          ctx2.fill();
         }
         return front <= stage.width + 90;
       };
@@ -2386,7 +2398,7 @@ var RetroTextEffects = (() => {
       });
       return (elapsed) => {
         stage.clear();
-        const ctx = stage.ctx;
+        const ctx2 = stage.ctx;
         let radius = baseR;
         const positions = spots.map((spot) => {
           if (elapsed < searchEnd) {
@@ -2404,13 +2416,13 @@ var RetroTextEffects = (() => {
           radius = baseR + e * maxR;
         }
         for (const pos of positions) {
-          const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+          const grad = ctx2.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
           grad.addColorStop(0, "rgba(255, 255, 240, 0.18)");
           grad.addColorStop(1, "rgba(255, 255, 240, 0)");
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx2.fillStyle = grad;
+          ctx2.beginPath();
+          ctx2.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+          ctx2.fill();
         }
         for (const t of stage.targets) {
           for (const pos of positions) {
@@ -2447,7 +2459,7 @@ var RetroTextEffects = (() => {
       const maxRank = stage.width / stage.cellW + stage.height / stage.cellH;
       return (elapsed) => {
         stage.clear();
-        const ctx = stage.ctx;
+        const ctx2 = stage.ctx;
         let gridAlpha = 0.55;
         let build = 1;
         if (elapsed < gridEnd) {
@@ -2456,22 +2468,22 @@ var RetroTextEffects = (() => {
         } else if (elapsed >= fillEnd) {
           gridAlpha = 0.55 * (1 - clamp01((elapsed - fillEnd) / (fadeEnd - fillEnd)));
         }
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = grid;
-        ctx.globalAlpha = gridAlpha;
+        ctx2.lineWidth = 1;
+        ctx2.strokeStyle = grid;
+        ctx2.globalAlpha = gridAlpha;
         const halfH = stage.height / 2 * build;
         const halfW = stage.width / 2 * build;
-        ctx.beginPath();
+        ctx2.beginPath();
         for (const x of cols) {
-          ctx.moveTo(x, cy - halfH);
-          ctx.lineTo(x, cy + halfH);
+          ctx2.moveTo(x, cy - halfH);
+          ctx2.lineTo(x, cy + halfH);
         }
         for (const y of rows) {
-          ctx.moveTo(cx - halfW, y);
-          ctx.lineTo(cx + halfW, y);
+          ctx2.moveTo(cx - halfW, y);
+          ctx2.lineTo(cx + halfW, y);
         }
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+        ctx2.stroke();
+        ctx2.globalAlpha = 1;
         if (elapsed >= gridEnd) {
           const front = easeOutCubic(clamp01((elapsed - gridEnd) / (fillEnd - gridEnd))) * maxRank;
           for (const t of stage.targets) {
@@ -2518,7 +2530,7 @@ var RetroTextEffects = (() => {
       const lastStrike = (nStrikes - 1) * interval;
       return (elapsed) => {
         stage.clear();
-        const ctx = stage.ctx;
+        const ctx2 = stage.ctx;
         let flash = 0;
         for (const g of groups) {
           if (elapsed < g.strikeTime) {
@@ -2534,26 +2546,611 @@ var RetroTextEffects = (() => {
           }
           if (since < 140) {
             flash = Math.max(flash, 1 - since / 140);
-            ctx.strokeStyle = BOLT_COLOR;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(g.bolt[0].x, g.bolt[0].y);
+            ctx2.strokeStyle = BOLT_COLOR;
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            ctx2.moveTo(g.bolt[0].x, g.bolt[0].y);
             for (let i = 1; i < g.bolt.length; i += 1) {
-              ctx.lineTo(g.bolt[i].x, g.bolt[i].y);
+              ctx2.lineTo(g.bolt[i].x, g.bolt[i].y);
             }
-            ctx.stroke();
+            ctx2.stroke();
           }
         }
         if (flash > 0) {
-          ctx.fillStyle = `rgba(160, 190, 255, ${0.14 * flash})`;
-          ctx.fillRect(0, 0, stage.width, stage.height);
+          ctx2.fillStyle = `rgba(160, 190, 255, ${0.14 * flash})`;
+          ctx2.fillRect(0, 0, stage.width, stage.height);
         }
         return elapsed < lastStrike + 450;
       };
     });
   }
 
+  // src/art/metrics.js
+  var cache = /* @__PURE__ */ new Map();
+  var ruler = null;
+  function measureAdvance(fontFamily) {
+    const key = fontFamily || "monospace";
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    if (ruler === null) {
+      ruler = document.createElement("span");
+      ruler.setAttribute("aria-hidden", "true");
+      ruler.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre;font-size:100px;line-height:1;padding:0;border:0;";
+    }
+    ruler.style.fontFamily = key;
+    ruler.textContent = "MMMMMMMMMM";
+    document.body.appendChild(ruler);
+    const width = ruler.getBoundingClientRect().width / 1e3;
+    document.body.removeChild(ruler);
+    const advance = width > 0.1 && width < 1.2 ? width : 0.6;
+    if (width > 0.1 && width < 1.2) {
+      cache.set(key, advance);
+    }
+    return advance;
+  }
+  function cellAspect(fontFamily, lineHeightRatio) {
+    return measureAdvance(fontFamily) / (lineHeightRatio || 1);
+  }
+
+  // src/art/emoji.js
+  var BODY_RAMP = "\xB7~oxX%$@";
+  var EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif';
+  var ALPHA_ON = 0.28;
+  var SIZE = 320;
+  var canvas = null;
+  var ctx = null;
+  function context() {
+    if (ctx === null) {
+      canvas = document.createElement("canvas");
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+      ctx = canvas.getContext("2d", { willReadFrequently: true });
+    }
+    return ctx;
+  }
+  function drawEmoji(emoji, options = {}) {
+    const c = context();
+    const scaleX = options.scaleX === void 0 ? 1 : options.scaleX;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, SIZE, SIZE);
+    c.save();
+    c.translate(SIZE / 2, SIZE / 2);
+    c.rotate(options.angle || 0);
+    c.scale(scaleX, 1);
+    c.font = `${Math.round(SIZE * 0.72)}px ${options.font || EMOJI_FONT}`;
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(emoji, 0, 0);
+    c.restore();
+    return c.getImageData(0, 0, SIZE, SIZE).data;
+  }
+  function boxOf(pixels, margin = 0) {
+    let x0 = SIZE;
+    let y0 = SIZE;
+    let x1 = -1;
+    let y1 = -1;
+    for (let y = 0; y < SIZE; y += 1) {
+      for (let x = 0; x < SIZE; x += 1) {
+        if (pixels[(y * SIZE + x) * 4 + 3] > 16) {
+          if (x < x0) {
+            x0 = x;
+          }
+          if (y < y0) {
+            y0 = y;
+          }
+          if (x > x1) {
+            x1 = x;
+          }
+          if (y > y1) {
+            y1 = y;
+          }
+        }
+      }
+    }
+    if (x1 < 0) {
+      return null;
+    }
+    const bw = x1 - x0 + 1;
+    const bh = y1 - y0 + 1;
+    const mx = bw * margin;
+    const my = bh * margin;
+    return { x0: x0 - mx, y0: y0 - my, bw: bw + 2 * mx, bh: bh + 2 * my };
+  }
+  function sampleGrid(pixels, box, options) {
+    const cols = Math.max(1, Math.round(options.cols));
+    const cw = box.bw / cols;
+    const ch = cw / options.aspect;
+    const rows = Math.max(1, Math.round(box.bh / ch));
+    const cov = new Float32Array(cols * rows);
+    const lum = new Float32Array(cols * rows);
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < cols; c += 1) {
+        const px = Math.max(0, Math.floor(box.x0 + c * cw));
+        const py = Math.max(0, Math.floor(box.y0 + r * ch));
+        const ex = Math.min(SIZE, Math.floor(box.x0 + (c + 1) * cw));
+        const ey = Math.min(SIZE, Math.floor(box.y0 + (r + 1) * ch));
+        let a = 0;
+        let l = 0;
+        let n = 0;
+        for (let y = py; y < ey; y += 1) {
+          for (let x = px; x < ex; x += 1) {
+            const i = (y * SIZE + x) * 4;
+            const av = pixels[i + 3] / 255;
+            a += av;
+            l += av * (0.2126 * pixels[i] + 0.7152 * pixels[i + 1] + 0.0722 * pixels[i + 2]) / 255;
+            n += 1;
+          }
+        }
+        cov[r * cols + c] = n > 0 ? a / n : 0;
+        lum[r * cols + c] = n > 0 ? l / n : 0;
+      }
+    }
+    return { cols, rows, cov, lum };
+  }
+  function gridToLines(grid, options = {}) {
+    const ramp = options.ramp || BODY_RAMP;
+    const last = ramp.length - 1;
+    const { cols, rows, cov, lum } = grid;
+    const lines = [];
+    for (let r = 0; r < rows; r += 1) {
+      let line = "";
+      for (let c = 0; c < cols; c += 1) {
+        const i = r * cols + c;
+        if (cov[i] < ALPHA_ON) {
+          line += " ";
+          continue;
+        }
+        const edge = c === 0 || c === cols - 1 || r === 0 || r === rows - 1 || cov[i - 1] < ALPHA_ON || cov[i + 1] < ALPHA_ON || cov[i - cols] < ALPHA_ON || cov[i + cols] < ALPHA_ON;
+        if (edge) {
+          line += "@";
+        } else {
+          const v = lum[i] / Math.max(cov[i], 1e-3);
+          const idx = Math.round(v * last);
+          line += ramp.charAt(idx < 0 ? 0 : Math.min(idx, last));
+        }
+      }
+      lines.push(options.trim === false ? line : line.replace(/\s+$/, ""));
+    }
+    return lines;
+  }
+  function asciiArt(emoji, options = {}) {
+    const pixels = drawEmoji(emoji, { font: options.font });
+    const box = boxOf(pixels);
+    if (box === null) {
+      return "";
+    }
+    const aspect = options.aspect || cellAspect(options.fontFamily || "monospace", options.lineHeight || 1.06);
+    const grid = sampleGrid(pixels, box, { cols: options.cols || 40, aspect });
+    return gridToLines(grid, { ramp: options.ramp }).join("\n");
+  }
+
+  // src/art/aura.js
+  var AURA_RAMP = "\xB7~o+=*x%";
+  var GAP = 1.15;
+  var TAU = Math.PI * 2;
+  var FRAMES = 16;
+  var BOB = { off: 0, float: 2, spin: 1 };
+  var TILT_MARGIN = 0.11;
+  var VARIANTS = {
+    // Jede Zelle flackert unabhaengig - der Klassiker von ghostty.org.
+    shimmer: (d, angle, x, y, t, rnd) => 0.58 + 0.42 * Math.sin(t * 5.5 + rnd * 40),
+    // Helligkeit als Funktion des Abstands, die Aura atmet nach aussen.
+    pulse: (d, angle, x, y, t) => 0.45 + 0.55 * Math.sin(t * 2.1 - d * 1.15),
+    // Zwei Ringe loesen sich periodisch von der Figur.
+    sonar: (d, angle, x, y, t, rnd, ext) => {
+      const span = ext + 1.2;
+      const a = t * 0.55 % 1 * span;
+      const b = (t * 0.55 + 0.5) % 1 * span;
+      const ia = Math.exp(-((d - a) * (d - a)) / 0.55);
+      const ib = Math.exp(-((d - b) * (d - b)) / 0.55) * 0.7;
+      return 0.12 + 0.88 * Math.max(ia, ib);
+    },
+    // Ein Lichtbogen kreist um die Figur.
+    orbit: (d, angle, x, y, t) => {
+      const c = Math.cos(angle - t * 1.3);
+      return 0.18 + 0.82 * (c > 0 ? c * c * c : 0);
+    },
+    // Rauschfeld, das nach oben driftet.
+    updraft: (d, angle, x, y, t, rnd) => {
+      const s = Math.sin(y * 0.9 + t * 4.2 + rnd * 12) * Math.cos(x * 0.55 - t * 0.7);
+      return 0.4 + 0.6 * (0.5 + 0.5 * s);
+    },
+    // Ohne Bewegung, nur der gestufte Abstand.
+    halo: () => 1
+  };
+  var auraVariants = Object.keys(VARIANTS);
+  var auraMotions = ["off", "float", "spin"];
+  function motionAt(motion, u) {
+    if (motion === "spin") {
+      const c = Math.cos(u * TAU);
+      return { angle: 0, scaleX: Math.abs(c) < 0.07 ? Math.sign(c) * 0.07 || 0.07 : c };
+    }
+    if (motion === "float") {
+      return { angle: 0.15 * Math.sin(u * TAU), scaleX: 1 };
+    }
+    return { angle: 0, scaleX: 1 };
+  }
+  function makeGroup(box, config) {
+    const { cols, aspect, ext, bob, ramp } = config;
+    const cw = box.bw / cols;
+    const ch = cw / aspect;
+    const rows = Math.max(1, Math.round(box.bh / ch));
+    const padX = Math.ceil(ext / aspect) + 1;
+    const padY = Math.ceil(ext) + 1 + bob;
+    const W = cols + 2 * padX;
+    const H = rows + 2 * padY;
+    const angle = new Float32Array(W * H);
+    const rnd = new Float32Array(W * H);
+    const cx = padX + cols / 2;
+    const cy = padY + rows / 2;
+    for (let y = 0; y < H; y += 1) {
+      for (let x = 0; x < W; x += 1) {
+        const i = y * W + x;
+        angle[i] = Math.atan2(y - cy, (x - cx) * aspect);
+        const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        rnd[i] = h - Math.floor(h);
+      }
+    }
+    return {
+      cols,
+      rows,
+      aspect,
+      ext,
+      ramp,
+      W,
+      H,
+      padX,
+      padY,
+      angle,
+      rnd,
+      blank: " ".repeat(W),
+      frames: []
+    };
+  }
+  function distanceField(cov, W, H, aspect) {
+    const INF = 1e9;
+    const wH = aspect;
+    const wD = Math.sqrt(aspect * aspect + 1);
+    const dist = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i += 1) {
+      dist[i] = cov[i] >= ALPHA_ON ? 0 : INF;
+    }
+    for (let y = 0; y < H; y += 1) {
+      for (let x = 0; x < W; x += 1) {
+        const i = y * W + x;
+        if (x > 0 && dist[i - 1] + wH < dist[i]) {
+          dist[i] = dist[i - 1] + wH;
+        }
+        if (y > 0 && dist[i - W] + 1 < dist[i]) {
+          dist[i] = dist[i - W] + 1;
+        }
+        if (x > 0 && y > 0 && dist[i - W - 1] + wD < dist[i]) {
+          dist[i] = dist[i - W - 1] + wD;
+        }
+        if (x < W - 1 && y > 0 && dist[i - W + 1] + wD < dist[i]) {
+          dist[i] = dist[i - W + 1] + wD;
+        }
+      }
+    }
+    for (let y = H - 1; y >= 0; y -= 1) {
+      for (let x = W - 1; x >= 0; x -= 1) {
+        const i = y * W + x;
+        if (x < W - 1 && dist[i + 1] + wH < dist[i]) {
+          dist[i] = dist[i + 1] + wH;
+        }
+        if (y < H - 1 && dist[i + W] + 1 < dist[i]) {
+          dist[i] = dist[i + W] + 1;
+        }
+        if (x < W - 1 && y < H - 1 && dist[i + W + 1] + wD < dist[i]) {
+          dist[i] = dist[i + W + 1] + wD;
+        }
+        if (x > 0 && y < H - 1 && dist[i + W - 1] + wD < dist[i]) {
+          dist[i] = dist[i + W - 1] + wD;
+        }
+      }
+    }
+    return dist;
+  }
+  function sampleFrame(pixels, box, g) {
+    const grid = sampleGrid(pixels, box, { cols: g.cols, aspect: g.aspect });
+    const lines = gridToLines(grid, { ramp: g.ramp, trim: false });
+    const left = " ".repeat(g.padX);
+    const right = " ".repeat(g.W - g.padX - g.cols);
+    const bodyLines = [];
+    for (let y = 0; y < g.H; y += 1) {
+      const r = y - g.padY;
+      bodyLines.push(r >= 0 && r < grid.rows ? left + lines[r] + right : g.blank);
+    }
+    const cov = new Float32Array(g.W * g.H);
+    for (let r = 0; r < grid.rows && r < g.rows; r += 1) {
+      for (let c = 0; c < grid.cols; c += 1) {
+        cov[(r + g.padY) * g.W + (c + g.padX)] = grid.cov[r * grid.cols + c];
+      }
+    }
+    return { bodyLines, dist: distanceField(cov, g.W, g.H, g.aspect) };
+  }
+  var groupCache = /* @__PURE__ */ new Map();
+  function buildGroup(config) {
+    const key = [
+      config.emoji,
+      config.cols,
+      config.aspect.toFixed(3),
+      config.ext,
+      config.motion,
+      config.ramp,
+      config.font
+    ].join("|");
+    if (groupCache.has(key)) {
+      return groupCache.get(key);
+    }
+    const box = boxOf(drawEmoji(config.emoji, { font: config.font }), TILT_MARGIN);
+    let group = null;
+    if (box !== null) {
+      group = makeGroup(box, {
+        cols: config.cols,
+        aspect: config.aspect,
+        ext: config.ext,
+        ramp: config.ramp,
+        bob: BOB[config.motion] || 0
+      });
+      const count = config.motion === "off" ? 1 : FRAMES;
+      for (let k = 0; k < count; k += 1) {
+        const pose = motionAt(config.motion, k / count);
+        const pixels = drawEmoji(config.emoji, {
+          angle: pose.angle,
+          scaleX: pose.scaleX,
+          font: config.font
+        });
+        group.frames.push(sampleFrame(pixels, box, group));
+      }
+    }
+    if (groupCache.size > 8) {
+      groupCache.clear();
+    }
+    groupCache.set(key, group);
+    return group;
+  }
+  function auraLines(g, dist, fn, t) {
+    const span = g.ext - GAP;
+    const last = AURA_RAMP.length - 1;
+    const out = [];
+    for (let y = 0; y < g.H; y += 1) {
+      let line = "";
+      for (let x = 0; x < g.W; x += 1) {
+        const i = y * g.W + x;
+        const d = dist[i];
+        if (d < GAP || d > g.ext) {
+          line += " ";
+          continue;
+        }
+        const f = Math.pow(1 - (d - GAP) / span, 1.7);
+        const v = f * fn(d, g.angle[i], x, y, t, g.rnd[i], g.ext);
+        if (v <= 0.18) {
+          line += " ";
+          continue;
+        }
+        line += AURA_RAMP.charAt(Math.min(last, Math.floor(v * AURA_RAMP.length)));
+      }
+      out.push(line);
+    }
+    return out;
+  }
+  function shifted(lines, dy, g) {
+    if (dy === 0) {
+      return lines.join("\n");
+    }
+    const out = [];
+    for (let y = 0; y < g.H; y += 1) {
+      const s = y - dy;
+      out.push(s >= 0 && s < g.H ? lines[s] : g.blank);
+    }
+    return out.join("\n");
+  }
+  function makeLayer() {
+    const el = document.createElement("span");
+    el.style.cssText = "grid-area:1/1;white-space:pre;font-family:inherit;";
+    return el;
+  }
+  function aura(target, options = {}) {
+    const host = resolveTarget(target);
+    const style = getComputedStyle(host);
+    const opts = {
+      emoji: options.emoji || "\u{1F47B}",
+      cols: options.cols || 40,
+      variant: VARIANTS[options.variant] ? options.variant : "shimmer",
+      motion: auraMotions.indexOf(options.motion) >= 0 ? options.motion : "float",
+      width: options.width || 4.5,
+      speed: options.speed || 1,
+      color: options.color || style.color || "#33ff33",
+      ramp: options.ramp,
+      lineHeight: options.lineHeight || 1.06,
+      fit: options.fit !== false,
+      maxFontSize: options.maxFontSize || 22,
+      fps: options.fps || 24,
+      font: options.font || EMOJI_FONT
+    };
+    const reduced = options.respectReducedMotion !== false && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      opts.motion = "off";
+    }
+    const fontFamily = style.fontFamily || "monospace";
+    const advance = measureAdvance(fontFamily);
+    const aspect = advance / opts.lineHeight;
+    const stage = document.createElement("span");
+    stage.style.cssText = `display:grid;justify-content:center;line-height:${opts.lineHeight};`;
+    const bodyEl = makeLayer();
+    const glowEl = makeLayer();
+    glowEl.setAttribute("aria-hidden", "true");
+    stage.appendChild(bodyEl);
+    stage.appendChild(glowEl);
+    function applyColor() {
+      bodyEl.style.color = opts.color;
+      bodyEl.style.textShadow = `0 0 6px ${toRgba(opts.color, 0.4)}`;
+      glowEl.style.color = toRgba(opts.color, 0.42);
+      glowEl.style.textShadow = `0 0 8px ${toRgba(opts.color, 0.28)}`;
+    }
+    applyColor();
+    const previousChildren = Array.prototype.slice.call(host.childNodes);
+    previousChildren.forEach((node) => host.removeChild(node));
+    host.appendChild(stage);
+    let group = null;
+    let stamp = "";
+    let visible = true;
+    let t = 0;
+    function fit() {
+      if (group === null) {
+        return;
+      }
+      const cs = getComputedStyle(host);
+      const inner = host.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      if (inner <= 0) {
+        return;
+      }
+      const wanted = opts.fit ? inner / (group.W * advance) : parseFloat(cs.fontSize) || 14;
+      stage.style.fontSize = `${Math.min(opts.maxFontSize, Math.max(2.5, wanted)).toFixed(2)}px`;
+    }
+    function rebuild() {
+      group = buildGroup({
+        emoji: opts.emoji,
+        cols: opts.cols,
+        aspect,
+        ext: opts.width,
+        motion: opts.motion,
+        ramp: opts.ramp,
+        font: opts.font
+      });
+      stamp = "";
+      if (group === null) {
+        bodyEl.textContent = "";
+        glowEl.textContent = "";
+        return;
+      }
+      fit();
+    }
+    function render(time) {
+      if (group === null || !visible) {
+        return;
+      }
+      const count = group.frames.length;
+      let index = 0;
+      if (count > 1) {
+        const turns = opts.motion === "spin" ? 0.2 : 0.24;
+        let u = time * turns % 1;
+        if (u < 0) {
+          u += 1;
+        }
+        index = Math.min(count - 1, Math.floor(u * count));
+      }
+      const amp = BOB[opts.motion] || 0;
+      const dy = amp === 0 ? 0 : Math.round(amp * Math.sin(time * TAU * 0.4));
+      const frame = group.frames[index];
+      const next = `${index}:${dy}`;
+      if (stamp !== next) {
+        bodyEl.textContent = shifted(frame.bodyLines, dy, group);
+        stamp = next;
+      }
+      glowEl.textContent = shifted(
+        auraLines(group, frame.dist, VARIANTS[opts.variant], time),
+        dy,
+        group
+      );
+    }
+    rebuild();
+    let observer = null;
+    if (typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver((entries) => {
+        visible = entries[entries.length - 1].isIntersecting;
+      }, { rootMargin: "120px" });
+      observer.observe(host);
+    }
+    let resizer = null;
+    function onResize() {
+      fit();
+    }
+    if (typeof ResizeObserver !== "undefined") {
+      resizer = new ResizeObserver(onResize);
+      resizer.observe(host);
+    } else {
+      window.addEventListener("resize", onResize);
+    }
+    let loop = null;
+    let resolveStill;
+    const stillFinished = new Promise((resolve) => {
+      resolveStill = resolve;
+    });
+    if (reduced) {
+      render(0.6);
+    } else {
+      const stepT = 1 / opts.fps;
+      loop = createLoop(() => {
+        t += stepT * opts.speed;
+        render(t);
+        return true;
+      }, { fps: opts.fps });
+    }
+    let cancelled = false;
+    function teardown() {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      if (observer !== null) {
+        observer.disconnect();
+      }
+      if (resizer !== null) {
+        resizer.disconnect();
+      } else {
+        window.removeEventListener("resize", onResize);
+      }
+      if (stage.parentNode === host) {
+        host.removeChild(stage);
+      }
+      previousChildren.forEach((node) => host.appendChild(node));
+    }
+    return {
+      finished: loop !== null ? loop.finished : stillFinished,
+      cancel() {
+        teardown();
+        if (loop !== null) {
+          loop.cancel();
+        } else {
+          resolveStill();
+        }
+      },
+      /**
+       * Aendert Zeichen, Variante, Bewegung, Farbe oder Aura-Breite im Betrieb.
+       * @param {object} patch
+       */
+      update(patch = {}) {
+        const structural = ["emoji", "cols", "width", "motion", "ramp", "font"];
+        const needsRebuild = structural.some(
+          (key) => patch[key] !== void 0 && patch[key] !== opts[key]
+        );
+        Object.keys(patch).forEach((key) => {
+          if (patch[key] !== void 0) {
+            opts[key] = patch[key];
+          }
+        });
+        if (reduced) {
+          opts.motion = "off";
+        }
+        if (patch.color !== void 0) {
+          applyColor();
+        }
+        if (needsRebuild) {
+          rebuild();
+        }
+        render(t);
+      },
+      /** Die Figur als reiner Text, ohne Aura. */
+      text() {
+        return bodyEl.textContent || "";
+      }
+    };
+  }
+
   // src/index.js
-  var version = "0.5.0";
+  var version = "0.6.0";
   return __toCommonJS(index_exports);
 })();
