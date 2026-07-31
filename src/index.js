@@ -50,4 +50,9 @@ export { spotlights } from './effects/spotlights.js';
 export { synthgrid } from './effects/synthgrid.js';
 export { thunderstorm } from './effects/thunderstorm.js';
 
-export const version = '0.5.0';
+// Art effects: the text is generated from a Unicode glyph instead of read from
+// the DOM, and the animation keeps running until you cancel it.
+export { asciiArt, BODY_RAMP } from './art/emoji.js';
+export { aura, auraVariants, auraMotions, AURA_RAMP } from './art/aura.js';
+
+export const version = '0.6.0';

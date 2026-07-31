@@ -1,6 +1,6 @@
 {
   "name": "retro-text-effects",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Browser port of TerminalTextEffects (TTE) - retro terminal text effects as a single dependency-free file.",
   "type": "module",
   "main": "dist/retro-text-effects.js",

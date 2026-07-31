@@ -3,7 +3,8 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['dist/**', 'docs/**'],
+    // prototypes/ is local scratch work, not part of the library and not tracked.
+    ignores: ['dist/**', 'docs/**', 'prototypes/**'],
   },
   js.configs.recommended,
   {

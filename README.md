@@ -14,7 +14,7 @@ shipped as a single file you can drop into any page.
 **[Live demo](https://michaelblaess.github.io/retro-text-effects.js/)** - every effect runs
 right in your browser.
 
-The effects come in three groups:
+The effects come in four groups:
 
 - **Text effects** run on a plain `<pre>` block by rewriting its text content - no canvas,
   the text stays selectable, box-drawing characters stay aligned, and the colour is inherited
@@ -23,6 +23,9 @@ The effects come in three groups:
   (fireworks, black hole, rain, ...), then fade it out and reveal the untouched text below.
 - **Style effects** (`crt`, `colorshift`, `highlight`) recolour or light the element in place
   without ever touching the text, so they layer cleanly over an already-visible console.
+- **Art effects** (`aura`) are the exception: they do not read text from the page, they
+  generate it. Any Unicode glyph becomes an ASCII figure wrapped in a moving ring of
+  characters, and the animation keeps running until you cancel it.
 
 ## Quick start
 
@@ -105,6 +108,51 @@ so they layer cleanly over an already-visible console:
 | `colorshift(el, opts)` | Persistent animated gradient that keeps sliding across the glyphs. `cancel()` removes it. |
 | `highlight(el, opts)` | Runs a single specular highlight across the text, then restores the original colours. |
 
+### Art effects (the text is generated)
+
+`aura` is the odd one out. It does not read the element's text, it rasterises a Unicode
+glyph on an offscreen canvas, translates the cells into a character ramp and wraps the
+figure in a ring of terminal characters that keeps moving. Like `crt` it is persistent -
+it runs until `cancel()`.
+
+| Effect | What it does |
+| --- | --- |
+| `aura(el, opts)` | Turns a glyph into a glowing ASCII figure with an animated aura. Also offers `update()` and `text()`. |
+| `asciiArt(glyph, opts)` | Not an effect but a plain function - returns the art as a string, ready for any other effect. |
+
+```js
+const ghost = RetroTextEffects.aura('#stage', { emoji: '👻', cols: 46 });
+
+ghost.update({ variant: 'sonar', motion: 'spin', color: '#35d0ff' });
+ghost.text();     // the figure as plain text, without the aura
+ghost.cancel();   // stops it and restores the element's original content
+
+// Or skip the animation and feed the art into any other effect:
+document.querySelector('#stage').textContent = RetroTextEffects.asciiArt('🎃', { cols: 40 });
+RetroTextEffects.decrypt('#stage');
+```
+
+Six aura variants, listed in `RetroTextEffects.auraVariants`:
+
+| Variant | What it does |
+| --- | --- |
+| `shimmer` | Every cell flickers on its own - the classic look from ghostty.org. |
+| `pulse` | Brightness follows the distance, so the aura breathes outward. |
+| `sonar` | Rings leave the figure one after another. |
+| `orbit` | An arc of light circles the figure like a radar sweep. |
+| `updraft` | A noise field drifts upward, like rising heat. |
+| `halo` | No movement, just the stepped distance. |
+
+Three kinds of motion, listed in `RetroTextEffects.auraMotions`: `off` keeps the figure
+still, `float` tilts it and hops it by whole rows, and `spin` squeezes it horizontally
+with a cosine so it reads as a flipping coin. The poses are rasterised once and replayed
+as a loop - a CSS transform would tilt the characters themselves and break the grid.
+
+Two things worth knowing: emoji fonts are platform specific, so the same glyph looks
+different on Windows, macOS and Linux - bake the art in with `asciiArt()` if you need a
+fixed result. And `prefers-reduced-motion` is honoured: the figure is then drawn once and
+stands still.
+
 Each effect returns a small controller:
 
 ```js
@@ -136,6 +184,13 @@ await fx.finished;  // resolves when the animation ends
 | `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
 | `amplitude` | number | `4` | `waves` (how far the crest bends per row) |
 | `colors` | string[] | retro palette | `colorshift` |
+| `emoji` | string | `👻` | `aura` |
+| `cols` | number | `40` | `aura`, `asciiArt` (raster width in characters) |
+| `variant` | string | `shimmer` | `aura` |
+| `motion` | string | `float` | `aura` (`off`/`float`/`spin`) |
+| `width` | number | `4.5` | `aura` (aura width in line heights) |
+| `fit` | boolean | `true` | `aura` (scales the font so the figure fills the element) |
+| `ramp` | string | `·~oxX%$@` | `aura`, `asciiArt` |
 
 All other canvas effects take `speed` and `onDone`; font, colour and character grid
 are read from the target element so the hand-off to the real text is seamless.
