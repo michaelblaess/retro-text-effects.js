@@ -47,6 +47,14 @@ Die Effekte gibt es in fünf Gruppen:
 Mehr ist es nicht: ein Script-Tag stellt `window.RetroTextEffects` bereit, dann rufst
 du einen Effekt mit einem Element oder einem CSS-Selektor auf.
 
+> **Eine Sache zur Schrift.** Die Scramble-Effekte laufen durch Block- und Schattierungszeichen
+> (`░▒▓█`), `matrix`/`matrix2` nehmen zusätzlich Katakana dazu. Fehlen die in der Schrift des
+> Zielelements, holt der Browser sie aus einer Ersatzschrift mit anderem Vorschub - dann
+> verschieben sich die Zeilen spaltenweise gegeneinander, solange der Effekt läuft, und ein
+> Banner aus Blockbuchstaben zerfällt. Also eine Schrift nehmen, die die Zeichen hat (Consolas,
+> DejaVu Sans Mono, Menlo oder ein vollständiges JetBrains Mono - die üblichen
+> Latin-Webfont-Subsets lassen sie weg), oder einen eigenen `glyphs`-Pool übergeben.
+
 ## Effekte
 
 ### Text-Effekte (ohne Canvas)

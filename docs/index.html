@@ -40,10 +40,14 @@
     .fx-switch.on { background: var(--accent-muted); border-color: var(--accent); }
     .fx-switch.on::after { left: 22px; background: var(--accent); }
     .fx-switch-hint { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); align-self: center; }
+    /* Terminal-Schrift bewusst NICHT var(--font-mono): die JetBrains-Mono-Subsets
+       enthalten kein U+2588, der Block kaeme aus einer Fallback-Schrift mit
+       anderem Vorschub - Banner und Effektglyphen wuerden zeilenweise verrutschen. */
     .term {
       margin: 0; padding: 22px 24px; border-radius: var(--radius-lg);
       background: #000; color: #33ff33; overflow-x: auto;
-      font-family: var(--font-mono); font-size: 15px; line-height: 1.6;
+      font-family: Consolas, 'SF Mono', 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+      font-size: 15px; line-height: 1.6;
       white-space: pre; box-shadow: inset 0 0 80px rgba(51,255,51,.06), var(--shadow-elevated);
       text-shadow: 0 0 5px rgba(51,255,51,.45); border: 1px solid #123012; min-height: 3em;
     }
@@ -211,17 +215,17 @@
         <button class="fx-switch" onclick="toggleCrt('#demo-banner', this)" aria-label="CRT-Modus umschalten"></button>
         <span class="fx-switch-hint">crt - persistent screen mode, flip it on and off</span>
       </div>
-      <pre id="demo-banner" class="term banner">██████  ███████ ███████ ██████   █████          ███████ ███████ ██   ██ ███████
-██   ██ ██        ███   ██   ██ ██   ██           ███   ██       ██ ██    ███
-██████  █████     ███   ██████  ██   ██  █████    ███   █████     ███     ███
-██   ██ ██        ███   ██   ██ ██   ██           ███   ██       ██ ██    ███
-██   ██ ███████   ███   ██   ██  █████            ███   ███████ ██   ██   ███
+      <pre id="demo-banner" class="term banner">██████  ███████ ████████ ██████   ██████           ████████ ███████ ██    ██ ████████
+██   ██ ██         ██    ██   ██ ██    ██             ██    ██       ██  ██     ██
+██████  █████      ██    ██████  ██    ██   ████      ██    █████     ████      ██
+██   ██ ██         ██    ██   ██ ██    ██             ██    ██       ██  ██     ██
+██   ██ ███████    ██    ██   ██  ██████              ██    ███████ ██    ██    ██
 
-███████ ███████ ███████ ███████  ██████ ███████  ██████
-██      ██      ██      ██      ██        ███   ██
-█████   █████   █████   █████   ██        ███    █████
-██      ██      ██      ██      ██        ███        ██
-███████ ██      ██      ███████  ██████   ███   ██████   . j s</pre>
+███████ ███████ ███████ ███████  ██████  ████████  ██████
+██      ██      ██      ██      ██    ██    ██    ██
+█████   █████   █████   █████   ██          ██     ██████
+██      ██      ██      ██      ██    ██    ██          ██
+███████ ██      ██      ███████  ██████     ██     ██████   . j s</pre>
     </div>
 
     <div class="demo-block">

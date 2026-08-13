@@ -43,6 +43,14 @@ The effects come in five groups:
 That is the whole integration: one script tag exposes `window.RetroTextEffects`,
 then call an effect with an element or a CSS selector.
 
+> **One thing about the font.** The scramble effects cycle through block and shade glyphs
+> (`░▒▓█`), and `matrix`/`matrix2` add katakana. If the font of the target element does not
+> contain them, the browser pulls them from a fallback font with a different advance width -
+> the lines then shear apart column by column while the effect runs, and block-letter banners
+> come out mangled. Use a font that has the glyphs (Consolas, DejaVu Sans Mono, Menlo, or a
+> complete JetBrains Mono - the usual latin webfont subsets leave them out), or pass your own
+> `glyphs` pool.
+
 ## Effects
 
 ### Text effects (no canvas)
