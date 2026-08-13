@@ -223,6 +223,25 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
 +----------------------------------------------+</pre>
       </div>
 
+      <div class="card">
+        <header>
+          <strong>Placeholder typewriter</strong>
+          <div class="actions">
+            <button id="ph-stop" type="button">stop</button>
+          </div>
+        </header>
+        <p style="color: var(--dim); margin: 0 0 12px;">
+          Only the placeholder attribute is rewritten - the fields keep their own styling.
+        </p>
+        <input id="ph-search" type="search" autocomplete="off"
+               placeholder="Search the effects"
+               style="width: 100%; margin-bottom: 10px; padding: 10px 12px; background: var(--panel); color: var(--fg); border: 1px solid var(--dim); border-radius: 6px; font-family: inherit;">
+        <input id="ph-cmd" type="text" autocomplete="off" spellcheck="false"
+               data-rte-placeholders="ssh root@mainframe | cat /var/log/retro.log | ./scan --domains 14"
+               placeholder="type a command"
+               style="width: 100%; padding: 10px 12px; background: #000; color: var(--fg); border: 1px solid var(--dim); border-radius: 999px; font-family: inherit;">
+      </div>
+
       <footer>
         <p>
           Apache-2.0 -
@@ -238,6 +257,34 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
         // Keep a pristine copy of each target so effects can be replayed.
         var originals = new WeakMap();
         var running = new WeakMap();
+
+        // Placeholder typewriter: one with explicit lines, one that takes them
+        // from the data attribute on the field itself.
+        var placeholders = [];
+
+        function startPlaceholders() {
+          placeholders = [
+            window.RetroTextEffects.placeholder('#ph-search', {
+              texts: ['Search the effects', 'decrypt, matrix, fireworks ...', 'or just type: aura']
+            }),
+            window.RetroTextEffects.placeholder('#ph-cmd', { cps: 18, cursor: '█' })
+          ];
+        }
+
+        startPlaceholders();
+
+        document.getElementById('ph-stop').addEventListener('click', function () {
+          if (placeholders.length > 0) {
+            placeholders.forEach(function (handle) {
+              handle.cancel();
+            });
+            placeholders = [];
+            this.textContent = 'start';
+            return;
+          }
+          startPlaceholders();
+          this.textContent = 'stop';
+        });
 
         document.querySelectorAll('button[data-fx]').forEach(function (btn) {
           btn.addEventListener('click', function () {

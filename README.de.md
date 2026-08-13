@@ -14,7 +14,7 @@ ausgeliefert als eine einzige Datei, die du in jede Seite einbinden kannst.
 **[Live-Demo](https://michaelblaess.github.io/retro-text-effects.js/)** - jeder Effekt
 läuft direkt im Browser.
 
-Die Effekte gibt es in vier Gruppen:
+Die Effekte gibt es in fünf Gruppen:
 
 - **Text-Effekte** laufen auf einem simplen `<pre>`-Block, indem sie nur dessen Textinhalt
   umschreiben - kein Canvas, der Text bleibt markierbar, Box-Drawing-Zeichen bleiben
@@ -26,6 +26,9 @@ Die Effekte gibt es in vier Gruppen:
 - **Stil-Effekte** (`crt`, `colorshift`, `highlight`) färben oder beleuchten das Element an
   Ort und Stelle, ohne den Text je anzufassen - sie legen sich sauber über eine bereits
   sichtbare Konsole.
+- **Eingabe-Effekte** (`placeholder`) laufen in einem Formularfeld: sie tippen dessen
+  Platzhalter Zeile für Zeile und schreiben sonst nichts um - weder den Wert noch das
+  Styling noch das Markup.
 - **Art-Effekte** (`aura`) sind die Ausnahme: sie lesen keinen Text von der Seite, sie
   erzeugen ihn. Aus einem beliebigen Unicode-Zeichen wird eine ASCII-Figur mit einem
   bewegten Ring aus Zeichen, und die Animation läuft, bis du sie abbrichst.
@@ -111,6 +114,42 @@ nie an und legen sich sauber über eine bereits sichtbare Konsole:
 | `colorshift(el, opts)` | Dauerhafter animierter Farbverlauf, der ständig über die Glyphen gleitet. `cancel()` entfernt ihn. |
 | `highlight(el, opts)` | Lässt einen einzelnen Glanzstreifen über den Text laufen und stellt danach die Originalfarben wieder her. |
 
+### Eingabe-Effekte (nur der Platzhalter)
+
+`placeholder` ist der einzige Effekt, der auf einem Formularfeld läuft. Er tippt den
+Platzhalter eines `<input>` oder `<textarea>` Zeichen für Zeichen, hält ihn kurz, löscht ihn
+wieder und geht zur nächsten Zeile über. Geschrieben wird ausschließlich das
+`placeholder`-Attribut - kein Wrapper-Element, kein eingefügtes Markup, keine Inline-Styles.
+Das Feld behält also genau das CSS, das du ihm gegeben hast.
+
+| Effekt | Was er macht |
+| --- | --- |
+| `placeholder(el, opts)` | Tippt, hält und löscht den Platzhalter eines Eingabefelds, Zeile für Zeile. |
+
+```html
+<input id="search" placeholder="Suche in der Doku">
+<!-- oder die Zeilen im Markup lassen, damit das Feld auch ohne JS sinnvoll dasteht: -->
+<input id="cmd" data-rte-placeholders="ssh root@mainframe | cat /var/log/retro.log">
+```
+
+```js
+RetroTextEffects.placeholder('#search', {
+  texts: ['Suche in der Doku', 'oder ein Effektname', 'probier: fireworks'],
+  cps: 24,          // Tipptempo
+  cursor: '_',      // '' schaltet den Cursor ab
+});
+
+const fx = RetroTextEffects.placeholder('#cmd');   // Zeilen aus data-rte-placeholders
+fx.cancel();        // stoppt und setzt den ursprünglichen Platzhalter zurück
+```
+
+Drei Details, die den Effekt in einem echten Formular brauchbar machen: er **friert ein,
+solange das Feld fokussiert oder ausgefüllt ist** (ein Platzhalter, den niemand sieht, muss
+nicht flackern, und einer unter dem Cursor stört nur) und macht beim Verlassen weiter, er
+beachtet `prefers-reduced-motion` und setzt dann einfach die erste Zeile als normalen
+Platzhalter, und `cancel()` stellt den Platzhalter wieder her, mit dem das Feld ausgeliefert
+wurde.
+
 ### Art-Effekte (der Text wird erzeugt)
 
 `aura` funktioniert gleich in zwei Punkten anders als alle anderen Effekte. Er liest nicht den
@@ -179,7 +218,7 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | `fps` | number | `30` | Text-Effekte (Canvas-Effekte laufen delta-getaktet auf rAF) |
 | `glyphs` | string | eingebauter Pool | `decrypt`, `decrypt2`, `matrix`, `matrix2`, `sweep` |
 | `preserveWhitespace` | boolean | `true` | `decrypt` |
-| `cps` | number | `60` | `print`, `print2` |
+| `cps` | number | `60` / `22` | `print`, `print2`, `placeholder` |
 | `head` | string | `█` | `print` |
 | `cycles` | number | `3` | `overflow`, `overflow2` |
 | `ratio` | number | `0.1` | `errorcorrect` (Anteil vertauschter Paare) |
@@ -193,6 +232,13 @@ await fx.finished;  // wird aufgeloest, wenn die Animation endet
 | `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
 | `amplitude` | number | `4` | `waves` (wie stark der Kamm pro Zeile ausschlägt) |
 | `colors` | string[] | Retro-Palette | `colorshift` |
+| `texts` | string[] | aus dem Feld | `placeholder` (sonst `data-rte-placeholders`, sonst der Platzhalter) |
+| `deleteCps` | number | `45` | `placeholder` (Löschtempo) |
+| `hold` | number (ms) | `1800` | `placeholder` (Pause auf der fertigen Zeile) |
+| `pause` | number (ms) | `400` | `placeholder` (Pause auf dem leeren Feld) |
+| `cursor` | string | `_` | `placeholder` (`''` schaltet ihn ab) |
+| `blink` | boolean | `true` | `placeholder` |
+| `loop` | boolean | `true` | `placeholder` (`false` stoppt nach der letzten Zeile) |
 | `emoji` | string | `👻` | `aura` |
 | `cols` | number | `40` | `aura`, `asciiArt` (Rasterbreite in Zeichen) |
 | `variant` | string | `shimmer` | `aura` |

@@ -14,7 +14,7 @@ shipped as a single file you can drop into any page.
 **[Live demo](https://michaelblaess.github.io/retro-text-effects.js/)** - every effect runs
 right in your browser.
 
-The effects come in four groups:
+The effects come in five groups:
 
 - **Text effects** run on a plain `<pre>` block by rewriting its text content - no canvas,
   the text stays selectable, box-drawing characters stay aligned, and the colour is inherited
@@ -23,6 +23,8 @@ The effects come in four groups:
   (fireworks, black hole, rain, ...), then fade it out and reveal the untouched text below.
 - **Style effects** (`crt`, `colorshift`, `highlight`) recolour or light the element in place
   without ever touching the text, so they layer cleanly over an already-visible console.
+- **Input effects** (`placeholder`) live inside a form field: they type its placeholder
+  line by line and rewrite nothing else - not the value, not the styling, not the markup.
 - **Art effects** (`aura`) are the exception: they do not read text from the page, they
   generate it. Any Unicode glyph becomes an ASCII figure wrapped in a moving ring of
   characters, and the animation keeps running until you cancel it.
@@ -108,6 +110,40 @@ so they layer cleanly over an already-visible console:
 | `colorshift(el, opts)` | Persistent animated gradient that keeps sliding across the glyphs. `cancel()` removes it. |
 | `highlight(el, opts)` | Runs a single specular highlight across the text, then restores the original colours. |
 
+### Input effects (placeholder only)
+
+`placeholder` is the only effect that runs on a form field. It types the placeholder of an
+`<input>` or `<textarea>` character by character, holds it, wipes it out again and moves on
+to the next line. The only thing it ever writes is the `placeholder` attribute - no wrapper
+element, no injected markup, no inline styles - so the field keeps exactly the CSS you gave it.
+
+| Effect | What it does |
+| --- | --- |
+| `placeholder(el, opts)` | Types, holds and deletes the placeholder of an input or textarea, line after line. |
+
+```html
+<input id="search" placeholder="Search the docs">
+<!-- or keep the lines in the markup, so the field still reads sensibly without JS: -->
+<input id="cmd" data-rte-placeholders="ssh root@mainframe | cat /var/log/retro.log">
+```
+
+```js
+RetroTextEffects.placeholder('#search', {
+  texts: ['Search the docs', 'or an effect name', 'try: fireworks'],
+  cps: 24,          // typing speed
+  cursor: '_',      // '' switches the cursor off
+});
+
+const fx = RetroTextEffects.placeholder('#cmd');   // lines from data-rte-placeholders
+fx.cancel();        // stops it and puts the original placeholder back
+```
+
+Three details that make it behave in a real form: it **freezes while the field is focused or
+filled in** (a placeholder nobody can see does not need to flicker, and a blinking one under a
+cursor is only in the way) and picks up again on blur, it honours `prefers-reduced-motion` by
+setting the first line as a plain placeholder, and `cancel()` restores the placeholder the
+field was served with.
+
 ### Art effects (the text is generated)
 
 `aura` is the odd one out twice over. It does not read the element's text, it rasterises a
@@ -175,7 +211,7 @@ await fx.finished;  // resolves when the animation ends
 | `fps` | number | `30` | text effects (canvas effects run delta-timed on rAF) |
 | `glyphs` | string | built-in pool | `decrypt`, `decrypt2`, `matrix`, `matrix2`, `sweep` |
 | `preserveWhitespace` | boolean | `true` | `decrypt` |
-| `cps` | number | `60` | `print`, `print2` |
+| `cps` | number | `60` / `22` | `print`, `print2`, `placeholder` |
 | `head` | string | `█` | `print` |
 | `cycles` | number | `3` | `overflow`, `overflow2` |
 | `ratio` | number | `0.1` | `errorcorrect` (share of swapped pairs) |
@@ -189,6 +225,13 @@ await fx.finished;  // resolves when the animation ends
 | `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
 | `amplitude` | number | `4` | `waves` (how far the crest bends per row) |
 | `colors` | string[] | retro palette | `colorshift` |
+| `texts` | string[] | from the field | `placeholder` (else `data-rte-placeholders`, else the placeholder) |
+| `deleteCps` | number | `45` | `placeholder` (deleting speed) |
+| `hold` | number (ms) | `1800` | `placeholder` (pause on the finished line) |
+| `pause` | number (ms) | `400` | `placeholder` (pause on the empty field) |
+| `cursor` | string | `_` | `placeholder` (`''` switches it off) |
+| `blink` | boolean | `true` | `placeholder` |
+| `loop` | boolean | `true` | `placeholder` (`false` stops after the last line) |
 | `emoji` | string | `👻` | `aura` |
 | `cols` | number | `40` | `aura`, `asciiArt` (raster width in characters) |
 | `variant` | string | `shimmer` | `aura` |

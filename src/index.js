@@ -23,6 +23,10 @@ export { crt } from './effects/crt.js';
 export { colorshift } from './effects/colorshift.js';
 export { highlight } from './effects/highlight.js';
 
+// Input effects: the only thing that changes is the placeholder attribute of a
+// form field - value, styling and layout of the field stay untouched.
+export { placeholder } from './effects/placeholder.js';
+
 // Canvas effects: an overlay canvas animates the characters in free 2D motion,
 // then fades out and reveals the untouched text.
 export { matrix2 } from './effects/matrix2.js';

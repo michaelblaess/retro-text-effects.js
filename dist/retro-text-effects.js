@@ -49,6 +49,7 @@ var RetroTextEffects = (() => {
     orbittingvolley: () => orbittingvolley,
     overflow: () => overflow,
     overflow2: () => overflow2,
+    placeholder: () => placeholder,
     pour: () => pour,
     print: () => print,
     print2: () => print2,
@@ -1260,6 +1261,156 @@ var RetroTextEffects = (() => {
         resolveFinished();
       }
     };
+  }
+
+  // src/effects/placeholder.js
+  var TYPING = 0;
+  var HOLDING = 1;
+  var DELETING = 2;
+  var WAITING = 3;
+  function placeholder(target, options = {}) {
+    const field = resolveField(target);
+    const original = field.getAttribute("placeholder");
+    const texts = collectTexts(field, options);
+    const restore = () => {
+      if (original === null) {
+        field.removeAttribute("placeholder");
+      } else {
+        field.setAttribute("placeholder", original);
+      }
+    };
+    if (texts.length === 0) {
+      return { finished: Promise.resolve(), cancel: () => {
+      } };
+    }
+    if (prefersReducedMotion()) {
+      field.setAttribute("placeholder", texts[0]);
+      if (options.onDone) {
+        options.onDone();
+      }
+      return { finished: Promise.resolve(), cancel: restore };
+    }
+    const speed = options.speed || 1;
+    const fps = options.fps || 30;
+    const step = 1e3 / fps;
+    const cps = (options.cps || 22) * speed;
+    const deleteCps = (options.deleteCps || 45) * speed;
+    const hold = toDelay(options.hold, 1800) / speed;
+    const pause = toDelay(options.pause, 400) / speed;
+    const cursor = options.cursor === void 0 ? "_" : options.cursor;
+    const blink = options.blink !== false;
+    const repeat = options.loop !== false;
+    const blinkFrames = Math.max(1, Math.round(fps * 0.5));
+    let index = 0;
+    let cells = [...texts[0]];
+    let shown = 0;
+    let phase = TYPING;
+    let waited = 0;
+    let frames = 0;
+    const write = (withCursor) => {
+      const text = cells.slice(0, Math.floor(shown)).join("");
+      field.setAttribute("placeholder", withCursor && cursor ? text + cursor : text);
+    };
+    const blinkOn = () => !blink || Math.floor(frames / blinkFrames) % 2 === 0;
+    const inUse = () => document.activeElement === field || (field.value || "") !== "";
+    const onFocus = () => {
+      shown = cells.length;
+      phase = HOLDING;
+      waited = 0;
+      write(false);
+    };
+    field.addEventListener("focus", onFocus);
+    const loop = createLoop(
+      () => {
+        frames += 1;
+        if (inUse()) {
+          return true;
+        }
+        if (phase === TYPING) {
+          shown = Math.min(cells.length, shown + cps / fps);
+          write(true);
+          if (shown >= cells.length) {
+            phase = HOLDING;
+            waited = 0;
+          }
+          return true;
+        }
+        if (phase === HOLDING) {
+          waited += step;
+          write(blinkOn());
+          if (waited < hold) {
+            return true;
+          }
+          if (!repeat && index === texts.length - 1) {
+            write(false);
+            if (options.onDone) {
+              options.onDone();
+            }
+            return false;
+          }
+          phase = DELETING;
+          return true;
+        }
+        if (phase === DELETING) {
+          shown = Math.max(0, shown - deleteCps / fps);
+          write(true);
+          if (shown <= 0) {
+            phase = WAITING;
+            waited = 0;
+          }
+          return true;
+        }
+        waited += step;
+        write(blinkOn());
+        if (waited >= pause) {
+          index = (index + 1) % texts.length;
+          cells = [...texts[index]];
+          shown = 0;
+          phase = TYPING;
+        }
+        return true;
+      },
+      { fps }
+    );
+    return {
+      finished: loop.finished,
+      cancel() {
+        loop.cancel();
+        field.removeEventListener("focus", onFocus);
+        restore();
+      }
+    };
+  }
+  function resolveField(target) {
+    const element = resolveTarget(target);
+    if (isField(element)) {
+      return element;
+    }
+    const inner = element.querySelector ? element.querySelector("input, textarea") : null;
+    if (inner === null) {
+      throw new Error("retro-text-effects: placeholder needs an <input> or <textarea>");
+    }
+    return inner;
+  }
+  function isField(element) {
+    return element.tagName === "INPUT" || element.tagName === "TEXTAREA";
+  }
+  function collectTexts(field, options) {
+    if (Array.isArray(options.texts)) {
+      return options.texts.filter((entry) => typeof entry === "string" && entry.length > 0);
+    }
+    if (typeof options.text === "string" && options.text.length > 0) {
+      return [options.text];
+    }
+    const attribute = field.getAttribute("data-rte-placeholders");
+    const source = attribute === null ? field.getAttribute("placeholder") || "" : attribute;
+    return source.split("|").map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+  }
+  function toDelay(value, fallback) {
+    return typeof value === "number" && value >= 0 ? value : fallback;
+  }
+  function prefersReducedMotion() {
+    return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
   // src/effects/matrix2.js
