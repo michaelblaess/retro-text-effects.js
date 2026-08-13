@@ -819,6 +819,8 @@ var RetroTextEffects = (() => {
     const cellH = Number.isNaN(lineHeightRaw) ? Math.round(fontSize * 1.4) : lineHeightRaw;
     const padX = parseFloat(style.paddingLeft) || 0;
     const padY = parseFloat(style.paddingTop) || 0;
+    const borderX = parseFloat(style.borderLeftWidth) || 0;
+    const borderY = parseFloat(style.borderTopWidth) || 0;
     const font = `${fontSize}px ${style.fontFamily}`;
     const color = style.color || "#33ff33";
     const width = Math.max(1, host.offsetWidth);
@@ -836,15 +838,21 @@ var RetroTextEffects = (() => {
     const ctx2 = canvas2.getContext("2d");
     ctx2.scale(dpr, dpr);
     ctx2.font = font;
-    ctx2.textBaseline = "top";
-    const cellW = ctx2.measureText("M").width || fontSize * 0.6;
+    ctx2.textBaseline = "alphabetic";
+    const metrics = ctx2.measureText("M");
+    const cellW = metrics.width || fontSize * 0.6;
+    const ascent = typeof metrics.fontBoundingBoxAscent === "number" ? metrics.fontBoundingBoxAscent : fontSize * 0.8;
+    const descent = typeof metrics.fontBoundingBoxDescent === "number" ? metrics.fontBoundingBoxDescent : fontSize * 0.2;
+    const halfLeading = (cellH - (ascent + descent)) / 2;
+    const originX = borderX + padX;
+    const originY = Math.ceil(borderY + padY + halfLeading + ascent - 0.5) - ascent;
     const targets = [];
     const rows = toLines(finalText);
     for (let r = 0; r < rows.length; r += 1) {
       const cells = toCells(rows[r]);
       for (let c = 0; c < cells.length; c += 1) {
         if (!isBlank(cells[c])) {
-          targets.push({ ch: cells[c], x: padX + c * cellW, y: padY + r * cellH });
+          targets.push({ ch: cells[c], x: originX + c * cellW, y: originY + r * cellH });
         }
       }
     }
@@ -855,17 +863,22 @@ var RetroTextEffects = (() => {
       height,
       cellW,
       cellH,
+      ascent,
+      originX,
+      originY,
       color,
       targets,
       clear(alpha) {
         ctx2.fillStyle = alpha === void 0 ? "#000000" : `rgba(0, 0, 0, ${alpha})`;
         ctx2.fillRect(0, 0, width, height);
       },
+      // y is the top of the character's line box content, as in the targets above -
+      // the baseline offset is applied here so effects never deal with it.
       drawChar(ch, x, y, fill) {
         ctx2.font = font;
-        ctx2.textBaseline = "top";
+        ctx2.textBaseline = "alphabetic";
         ctx2.fillStyle = fill || color;
-        ctx2.fillText(ch, x, y);
+        ctx2.fillText(ch, x, y + ascent);
       },
       remove() {
         if (canvas2.parentNode) {

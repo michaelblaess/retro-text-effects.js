@@ -42,7 +42,8 @@ export function clamp01(t) {
  *   ctx: CanvasRenderingContext2D,
  *   canvas: HTMLCanvasElement,
  *   width: number, height: number,
- *   cellW: number, cellH: number,
+ *   cellW: number, cellH: number, ascent: number,
+ *   originX: number, originY: number,
  *   color: string,
  *   targets: Array<{ch: string, x: number, y: number}>,
  *   clear: (alpha?: number) => void,
@@ -66,6 +67,10 @@ export function createStage(target) {
   const cellH = Number.isNaN(lineHeightRaw) ? Math.round(fontSize * 1.4) : lineHeightRaw;
   const padX = parseFloat(style.paddingLeft) || 0;
   const padY = parseFloat(style.paddingTop) || 0;
+  // The canvas is placed on the border box, so the border counts towards the
+  // origin - without it the whole grid sits a border width up and to the left.
+  const borderX = parseFloat(style.borderLeftWidth) || 0;
+  const borderY = parseFloat(style.borderTopWidth) || 0;
   const font = `${fontSize}px ${style.fontFamily}`;
   const color = style.color || '#33ff33';
 
@@ -91,9 +96,29 @@ export function createStage(target) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.font = font;
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'alphabetic';
 
-  const cellW = ctx.measureText('M').width || fontSize * 0.6;
+  const metrics = ctx.measureText('M');
+  const cellW = metrics.width || fontSize * 0.6;
+  // A line box is taller than the glyphs, and CSS splits the difference above and
+  // below them (half-leading). Without that the canvas text sits a few pixels
+  // higher than the DOM text and the block visibly jumps when the effect starts.
+  // 'alphabetic' is the only unambiguous baseline: 'top' means the em square in
+  // Chrome and the font bounding box elsewhere.
+  const ascent = typeof metrics.fontBoundingBoxAscent === 'number'
+    ? metrics.fontBoundingBoxAscent
+    : fontSize * 0.8;
+  const descent = typeof metrics.fontBoundingBoxDescent === 'number'
+    ? metrics.fontBoundingBoxDescent
+    : fontSize * 0.2;
+  const halfLeading = (cellH - (ascent + descent)) / 2;
+
+  // Origin of the character grid: everything an effect positions - glyphs, balls,
+  // beams - is measured from here, so the whole stage lines up with the text.
+  const originX = borderX + padX;
+  // Snap so the baseline lands on a whole pixel, half-pixels downwards - that is
+  // where the browser puts it too, and a fractional baseline rasterises a row off.
+  const originY = Math.ceil(borderY + padY + halfLeading + ascent - 0.5) - ascent;
 
   // Landing position of every visible character of the final text, in reading order.
   const targets = [];
@@ -102,7 +127,7 @@ export function createStage(target) {
     const cells = toCells(rows[r]);
     for (let c = 0; c < cells.length; c += 1) {
       if (!isBlank(cells[c])) {
-        targets.push({ ch: cells[c], x: padX + c * cellW, y: padY + r * cellH });
+        targets.push({ ch: cells[c], x: originX + c * cellW, y: originY + r * cellH });
       }
     }
   }
@@ -114,6 +139,9 @@ export function createStage(target) {
     height,
     cellW,
     cellH,
+    ascent,
+    originX,
+    originY,
     color,
     targets,
 
@@ -122,11 +150,13 @@ export function createStage(target) {
       ctx.fillRect(0, 0, width, height);
     },
 
+    // y is the top of the character's line box content, as in the targets above -
+    // the baseline offset is applied here so effects never deal with it.
     drawChar(ch, x, y, fill) {
       ctx.font = font;
-      ctx.textBaseline = 'top';
+      ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = fill || color;
-      ctx.fillText(ch, x, y);
+      ctx.fillText(ch, x, y + ascent);
     },
 
     remove() {
