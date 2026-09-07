@@ -25,6 +25,7 @@ export { highlight } from './effects/highlight.js';
 export {
   gradient,
   gradientPalettes,
+  gradientColors,
   gradientDirections,
   gradientModes,
 } from './effects/gradient.js';

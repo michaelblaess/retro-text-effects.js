@@ -42,6 +42,7 @@ var RetroTextEffects = (() => {
     expand: () => expand,
     fireworks: () => fireworks,
     gradient: () => gradient,
+    gradientColors: () => gradientColors,
     gradientDirections: () => gradientDirections,
     gradientModes: () => gradientModes,
     gradientPalettes: () => gradientPalettes,
@@ -1304,6 +1305,10 @@ var RetroTextEffects = (() => {
     mono: ["#ffffff", "#5a5a5a"]
   };
   var gradientPalettes = Object.keys(PALETTES);
+  function gradientColors(name) {
+    const found = PALETTES[name];
+    return found === void 0 ? [] : found.slice();
+  }
   var gradientDirections = Object.keys(DIRECTIONS);
   var gradientModes = ["smooth", "bands", "stripes"];
   function resolveAngle(direction) {

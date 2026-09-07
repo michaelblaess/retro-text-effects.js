@@ -76,6 +76,16 @@
     .tint-btn:hover { color: var(--text-primary); border-color: var(--border-hover); }
     .tint-btn.active { color: var(--text-primary); border-color: var(--accent); background: var(--accent-muted); }
     .tint-btn .bead { width: 11px; height: 11px; border-radius: 50%; background: var(--bead); box-shadow: 0 0 7px var(--bead); }
+    /* Palettenknopf traegt seinen eigenen Verlauf als Tupfer - die Farben kommen
+       aus der Bibliothek (gradientColors), nicht aus einer Kopie hier. */
+    .grad-swatch::before {
+      content: ''; display: inline-block; width: 24px; height: 9px; border-radius: 2px;
+      margin-right: 8px; vertical-align: middle; background-image: var(--swatch);
+      border: 1px solid var(--border);
+    }
+    /* pre.grad-code statt .grad-code: .install-code steht weiter unten im
+       Stylesheet und wuerde sonst mit gleicher Spezifitaet gewinnen. */
+    pre.grad-code { margin-top: 14px; max-width: none; white-space: pre-wrap; word-break: break-word; }
     .fx-range { accent-color: var(--accent); width: 128px; cursor: pointer; }
     .fx-out { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; min-width: 32px; }
     .aura-stage { display: block; min-height: 320px; padding: 26px 16px; }
@@ -123,6 +133,7 @@
     </div>
     <div class="header-right">
       <a href="#demo" class="header-link">Demo</a>
+      <a href="#gradient" class="header-link">Gradients</a>
       <a href="#art" class="header-link">Emoji art</a>
       <a href="#placeholder" class="header-link">Placeholder</a>
       <a href="#effects" class="header-link">Effects</a>
@@ -310,6 +321,53 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
 
   <div class="divider"><div class="divider-line"></div></div>
 
+  <!-- GRADIENT PLAYGROUND -->
+  <section class="section" id="gradient" style="padding-bottom: 8px;">
+    <div class="section-label">Colour</div>
+    <h2 class="section-title">Gradients across the glyphs</h2>
+    <p class="section-description">The <code style="color: var(--accent);">gradient</code> effect is for the moment when the text should simply <strong>look</strong> good instead of moving. It runs the colours through <code style="color: var(--accent);">background-clip: text</code>, so the text itself is never rewritten - it stays selectable, and the effects above still run on top of it. Top to bottom, left to right, diagonal or at any angle you like, as a smooth blend, as hard bands or as stripes.</p>
+    <p class="section-description">The gradient is measured against the <strong>text</strong>, not the block. A <code style="color: var(--accent);">&lt;pre&gt;</code> is as wide as its container while the longest line is usually much shorter, so a left-to-right run would otherwise show only its first third on the glyphs. Pick a palette below - the line underneath the terminal is the exact call that produces what you see.</p>
+  </section>
+
+  <div class="demo">
+    <div class="demo-block">
+      <div class="demo-head">
+        <span class="idx">03</span>
+        <span class="name">Gradient playground</span>
+        <span class="hint">twelve palettes, six directions, three patterns</span>
+      </div>
+
+      <div class="fx-bar" id="grad-palettes"><span class="fx-label">palette</span></div>
+      <div class="fx-bar" id="grad-directions"><span class="fx-label">direction</span></div>
+      <div class="fx-bar" id="grad-modes"><span class="fx-label">pattern</span></div>
+
+      <div class="fx-bar">
+        <span class="fx-label">options</span>
+        <button class="fx-btn" id="grad-lines" onclick="toggleGradientOption('lines', this)">one colour per line</button>
+        <button class="fx-btn" id="grad-flow" onclick="toggleGradientOption('flow', this)">let it flow</button>
+        <span class="fx-label" style="min-width: 42px;">speed</span>
+        <input class="fx-range" id="grad-speed" type="range" min="0.2" max="3" step="0.1" value="1" aria-label="Gradient speed">
+        <span class="fx-out" id="grad-speed-out">1.0x</span>
+      </div>
+
+      <pre id="demo-gradient" class="term">=== SYSTEM COLOUR CHECK ===
+phosphor tube warming up ....... ok
+raster locked, 80x24 ........... ok
+character rom v2.1 ............. ok
+
+  R E T R O   T E X T   E F F E C T S
+
+palette ....... twelve built in
+direction ..... down, up, left, right, diagonal
+pattern ....... smooth, bands, stripes
+
+=== READY ===</pre>
+      <pre class="install-code grad-code" id="grad-code"></pre>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div></div>
+
   <!-- EMOJI ART -->
   <section class="section" id="art" style="padding-bottom: 8px;">
     <div class="section-label">Emoji art</div>
@@ -321,7 +379,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <div class="demo">
     <div class="demo-block">
       <div class="demo-head">
-        <span class="idx">03</span>
+        <span class="idx">04</span>
         <span class="name">Aura stage</span>
         <span class="hint">the text is generated from the glyph you pick</span>
       </div>
@@ -369,7 +427,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <div class="demo">
     <div class="demo-block">
       <div class="demo-head">
-        <span class="idx">04</span>
+        <span class="idx">05</span>
         <span class="name">Placeholder typewriter</span>
         <span class="hint">three fields, three styles, one effect</span>
       </div>
@@ -647,6 +705,143 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       }
     }
 
+    // --- Gradient playground -------------------------------------------------
+    var DIRECTION_LABEL = {
+      down: 'top to bottom',
+      up: 'bottom to top',
+      right: 'left to right',
+      left: 'right to left',
+      diagonal: 'diagonal',
+      'diagonal-up': 'diagonal up'
+    };
+
+    var MODE_HINT = {
+      smooth: 'the colours blend into each other',
+      bands: 'hard-edged blocks, no blending',
+      stripes: 'stripes of a fixed pixel width'
+    };
+
+    var gradientHandle = null;
+    var gradientState = {
+      palette: 'amber',
+      direction: 'down',
+      mode: 'smooth',
+      lines: false,
+      flow: false,
+      speed: 1
+    };
+
+    // Baut genau das Optionsobjekt, das auch als Code-Zeile unter dem Terminal
+    // steht - was man sieht, ist die Zeile, die man kopieren kann.
+    function gradientOptions() {
+      var opts = {
+        direction: gradientState.direction,
+        palette: gradientState.palette,
+        mode: gradientState.mode
+      };
+      if (gradientState.lines) {
+        opts.repeat = 'lines';
+      }
+      if (gradientState.mode === 'stripes') {
+        opts.size = 14;
+      }
+      if (gradientState.flow) {
+        opts.animate = true;
+        opts.speed = Math.round(gradientState.speed * 10) / 10;
+      }
+      return opts;
+    }
+
+    function optionsToCode(opts) {
+      var parts = [];
+      Object.keys(opts).forEach(function (key) {
+        var value = opts[key];
+        parts.push(key + ': ' + (typeof value === 'string' ? "'" + value + "'" : value));
+      });
+      return '{ ' + parts.join(', ') + ' }';
+    }
+
+    function applyGradient() {
+      if (typeof RetroTextEffects === 'undefined' || !RetroTextEffects.gradient) {
+        return;
+      }
+      if (gradientHandle) {
+        gradientHandle.cancel();
+      }
+      var opts = gradientOptions();
+      gradientHandle = RetroTextEffects.gradient('#demo-gradient', opts);
+      document.getElementById('grad-code').textContent =
+        "RetroTextEffects.gradient('#log', " + optionsToCode(opts) + ');';
+    }
+
+    function toggleGradientOption(key, btn) {
+      gradientState[key] = !gradientState[key];
+      btn.classList.toggle('active', gradientState[key]);
+      applyGradient();
+    }
+
+    function buildGradientControls() {
+      var paletteBar = document.getElementById('grad-palettes');
+      RetroTextEffects.gradientPalettes.forEach(function (name) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fx-btn grad-swatch' + (name === gradientState.palette ? ' active' : '');
+        btn.textContent = name;
+        btn.style.setProperty(
+          '--swatch',
+          'linear-gradient(90deg, ' + RetroTextEffects.gradientColors(name).join(', ') + ')'
+        );
+        btn.onclick = function () {
+          markActive(btn);
+          gradientState.palette = name;
+          applyGradient();
+        };
+        paletteBar.appendChild(btn);
+      });
+
+      var directionBar = document.getElementById('grad-directions');
+      RetroTextEffects.gradientDirections.forEach(function (key) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fx-btn' + (key === gradientState.direction ? ' active' : '');
+        btn.textContent = DIRECTION_LABEL[key] || key;
+        btn.title = "direction: '" + key + "'";
+        btn.onclick = function () {
+          markActive(btn);
+          gradientState.direction = key;
+          applyGradient();
+        };
+        directionBar.appendChild(btn);
+      });
+
+      var modeBar = document.getElementById('grad-modes');
+      RetroTextEffects.gradientModes.forEach(function (key) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fx-btn' + (key === gradientState.mode ? ' active' : '');
+        btn.textContent = key;
+        btn.title = MODE_HINT[key] || '';
+        btn.onclick = function () {
+          markActive(btn);
+          gradientState.mode = key;
+          applyGradient();
+        };
+        modeBar.appendChild(btn);
+      });
+
+      var speed = document.getElementById('grad-speed');
+      speed.addEventListener('input', function () {
+        gradientState.speed = parseFloat(speed.value);
+        document.getElementById('grad-speed-out').textContent =
+          gradientState.speed.toFixed(1) + 'x';
+        if (gradientState.flow) {
+          applyGradient();
+        }
+      });
+
+      applyGradient();
+    }
+
     // --- Emoji art playground ------------------------------------------------
     var EMOJI_ROWS = {
       faces: ['😀', '😎', '🤖', '👽', '💀', '🤡', '👻', '😈', '🥶', '🤯', '😺', '🙀'],
@@ -883,6 +1078,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
     window.addEventListener('load', function () {
       runFx('decrypt', '#demo-banner');
       startPlaceholders();
+      buildGradientControls();
 
       // The cell raster is derived from the real font metrics, so wait for the
       // webfont - measuring the fallback would squeeze the figure.

@@ -153,8 +153,26 @@ RetroTextEffects.gradient('#log', { direction: 37, colors: ['#ff0055', '#00e5ff'
 | `repeat` | how often the palette fits along the axis - `'lines'` gives exactly one colour per text line |
 | `animate` | `false` by default. `true` lets the whole pattern flow along its own direction, at `speed` |
 
-The palette names are readable at runtime: `RetroTextEffects.gradientPalettes`,
-`gradientDirections` and `gradientModes` return the valid values as arrays.
+The twelve built-in palettes:
+
+| Palette | Colours | Reads as |
+| --- | --- | --- |
+| `phosphor` | `#0f8f2e` `#33ff33` `#ccffcc` | green screen, dark to bright |
+| `amber` | `#a35a00` `#ffb000` `#ffe9b0` | the other classic tube |
+| `ice` | `#2f6fb0` `#3fa7d6` `#d6f6ff` | cold blue, deep to pale |
+| `fire` | `#c02a4a` `#e4572e` `#ffa62b` `#ffef7a` | embers to sparks |
+| `toxic` | `#3f8f10` `#7cff00` `#e4ff9e` | radioactive green |
+| `gold` | `#b08000` `#ffd700` `#fff6c0` | polished metal |
+| `copper` | `#8a4a1e` `#b87333` `#ffd9a0` | warm patinated metal |
+| `sunset` | `#5b2b9e` `#7b2ff7` `#ff3c78` `#ff8c42` | violet into orange |
+| `vaporwave` | `#05ffa1` `#01cdfe` `#b967ff` `#ff71ce` | the full 80s spectrum |
+| `cyberpunk` | `#00f0ff` `#7a5cff` `#ff007a` | neon cyan to magenta |
+| `rainbow` | `#ff3b30` `#ff9500` `#ffee00` `#33ff33` `#00cfff` `#6633ff` `#ff33cc` | seven colours, best with bands |
+| `mono` | `#ffffff` `#5a5a5a` | white to grey, no hue at all |
+
+All of this is readable at runtime, so a picker never has to duplicate the values:
+`RetroTextEffects.gradientPalettes`, `gradientDirections` and `gradientModes` return the
+valid names as arrays, and `gradientColors('sunset')` hands back that palette's colours.
 
 ### Input effects (placeholder only)
 

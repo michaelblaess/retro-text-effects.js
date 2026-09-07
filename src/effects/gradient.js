@@ -33,6 +33,19 @@ const PALETTES = {
 };
 
 export const gradientPalettes = Object.keys(PALETTES);
+
+/**
+ * Farben einer Palette, als Kopie. Damit koennen Demo- und Doku-Seiten die
+ * Muster anzeigen, ohne sie ein zweites Mal zu definieren - sonst laufen die
+ * Farbtupfer irgendwann gegen die Bibliothek auseinander.
+ *
+ * @param {string} name - Name aus gradientPalettes.
+ * @returns {string[]} Leeres Array, wenn es die Palette nicht gibt.
+ */
+export function gradientColors(name) {
+  const found = PALETTES[name];
+  return found === undefined ? [] : found.slice();
+}
 export const gradientDirections = Object.keys(DIRECTIONS);
 export const gradientModes = ['smooth', 'bands', 'stripes'];
 

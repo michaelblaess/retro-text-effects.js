@@ -158,8 +158,27 @@ RetroTextEffects.gradient('#log', { direction: 37, colors: ['#ff0055', '#00e5ff'
 | `repeat` | wie oft die Palette auf die Achse passt - `'lines'` ergibt genau eine Farbe je Textzeile |
 | `animate` | standardmäßig `false`. Mit `true` wandert das ganze Muster in seine eigene Richtung, im Tempo von `speed` |
 
-Die Namen lassen sich zur Laufzeit auslesen: `RetroTextEffects.gradientPalettes`,
-`gradientDirections` und `gradientModes` liefern die gültigen Werte als Arrays.
+Die zwölf eingebauten Paletten:
+
+| Palette | Farben | Wirkt wie |
+| --- | --- | --- |
+| `phosphor` | `#0f8f2e` `#33ff33` `#ccffcc` | Grünmonitor, dunkel nach hell |
+| `amber` | `#a35a00` `#ffb000` `#ffe9b0` | die andere klassische Röhre |
+| `ice` | `#2f6fb0` `#3fa7d6` `#d6f6ff` | kaltes Blau, tief nach blass |
+| `fire` | `#c02a4a` `#e4572e` `#ffa62b` `#ffef7a` | Glut bis Funken |
+| `toxic` | `#3f8f10` `#7cff00` `#e4ff9e` | radioaktives Grün |
+| `gold` | `#b08000` `#ffd700` `#fff6c0` | poliertes Metall |
+| `copper` | `#8a4a1e` `#b87333` `#ffd9a0` | warmes Metall mit Patina |
+| `sunset` | `#5b2b9e` `#7b2ff7` `#ff3c78` `#ff8c42` | Violett nach Orange |
+| `vaporwave` | `#05ffa1` `#01cdfe` `#b967ff` `#ff71ce` | das volle 80er-Spektrum |
+| `cyberpunk` | `#00f0ff` `#7a5cff` `#ff007a` | Neon-Cyan nach Magenta |
+| `rainbow` | `#ff3b30` `#ff9500` `#ffee00` `#33ff33` `#00cfff` `#6633ff` `#ff33cc` | sieben Farben, am besten mit bands |
+| `mono` | `#ffffff` `#5a5a5a` | Weiß nach Grau, ganz ohne Farbton |
+
+Alles davon lässt sich zur Laufzeit auslesen, eine Auswahlleiste muss die Werte also nie
+doppelt pflegen: `RetroTextEffects.gradientPalettes`, `gradientDirections` und
+`gradientModes` liefern die gültigen Namen als Arrays, und `gradientColors('sunset')` gibt
+die Farben dieser Palette zurück.
 
 ### Eingabe-Effekte (nur der Platzhalter)
 
