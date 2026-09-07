@@ -66,4 +66,4 @@ export { thunderstorm } from './effects/thunderstorm.js';
 export { asciiArt, BODY_RAMP } from './art/emoji.js';
 export { aura, auraVariants, auraMotions, AURA_RAMP } from './art/aura.js';
 
-export const version = '0.7.1';
+export const version = '0.8.0';
