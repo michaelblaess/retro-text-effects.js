@@ -21,7 +21,7 @@ The effects come in five groups:
   from your element (perfect for an already-green console).
 - **Canvas effects** lay a temporary canvas over the element for free 2D character motion
   (fireworks, black hole, rain, ...), then fade it out and reveal the untouched text below.
-- **Style effects** (`crt`, `colorshift`, `highlight`) recolour or light the element in place
+- **Style effects** (`crt`, `colorshift`, `highlight`, `gradient`) recolour or light the element in place
   without ever touching the text, so they layer cleanly over an already-visible console.
 - **Input effects** (`placeholder`) live inside a form field: they type its placeholder
   line by line and rewrite nothing else - not the value, not the styling, not the markup.
@@ -117,6 +117,44 @@ so they layer cleanly over an already-visible console:
 | `crt(el, opts)` | Persistent CRT treatment - phosphor glow, scanlines, faint flicker. `cancel()` removes it. |
 | `colorshift(el, opts)` | Persistent animated gradient that keeps sliding across the glyphs. `cancel()` removes it. |
 | `highlight(el, opts)` | Runs a single specular highlight across the text, then restores the original colours. |
+| `gradient(el, opts)` | Paints a colour gradient across the glyphs - top to bottom, left to right, diagonal or at a free angle. `cancel()` removes it. |
+
+#### gradient: directions, patterns, palettes
+
+`gradient` is the one to reach for when the text should simply *look* good rather than move.
+It paints the glyphs through `background-clip: text`, so the text itself stays untouched and
+selectable. The gradient is measured against the text, not the block, so a left-to-right run
+spans exactly the widest line instead of trailing off into the empty half of a `<pre>`.
+
+```js
+// Top to bottom, smooth, warm amber
+RetroTextEffects.gradient('#log', { direction: 'down', palette: 'amber' });
+
+// Left to right through the whole vaporwave palette
+RetroTextEffects.gradient('#log', { direction: 'right', palette: 'vaporwave' });
+
+// One hard colour band per text line
+RetroTextEffects.gradient('#log', { mode: 'bands', palette: 'rainbow', repeat: 'lines' });
+
+// Diagonal stripes that keep flowing
+RetroTextEffects.gradient('#log', {
+  direction: 'diagonal', mode: 'stripes', palette: 'cyberpunk', size: 14, animate: true,
+});
+
+// Your own colours, at a free angle
+RetroTextEffects.gradient('#log', { direction: 37, colors: ['#ff0055', '#00e5ff'] });
+```
+
+| Setting | Values |
+| --- | --- |
+| `direction` | `down` (top to bottom), `up`, `right` (left to right), `left`, `diagonal`, `diagonal-up`, or any CSS angle as a number |
+| `mode` | `smooth` (blend), `bands` (hard-edged colour blocks), `stripes` (fixed-width stripes, `size` in px) |
+| `palette` | `phosphor`, `amber`, `ice`, `fire`, `toxic`, `gold`, `copper`, `sunset`, `vaporwave`, `cyberpunk`, `rainbow`, `mono` - or pass `colors` |
+| `repeat` | how often the palette fits along the axis - `'lines'` gives exactly one colour per text line |
+| `animate` | `false` by default. `true` lets the whole pattern flow along its own direction, at `speed` |
+
+The palette names are readable at runtime: `RetroTextEffects.gradientPalettes`,
+`gradientDirections` and `gradientModes` return the valid values as arrays.
 
 ### Input effects (placeholder only)
 
@@ -230,9 +268,14 @@ await fx.finished;  // resolves when the animation ends
 | `scanlineOpacity` | number | `0.15` | `crt` |
 | `glow` | boolean | `true` | `crt` |
 | `flicker` | boolean | `true` | `crt` |
-| `direction` | string | `diagonal` / `right` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`) |
+| `direction` | string \| number | `diagonal` / `right` / `down` | `wipe` (`left`/`right`/`up`/`down`/`diagonal`), `highlight` (`left`/`right`), `gradient` (also `diagonal-up` or an angle) |
 | `amplitude` | number | `4` | `waves` (how far the crest bends per row) |
-| `colors` | string[] | retro palette | `colorshift` |
+| `colors` | string[] | retro palette | `colorshift`, `gradient` (overrides `palette`) |
+| `palette` | string | `phosphor` | `gradient` (twelve built-in colour patterns) |
+| `mode` | string | `smooth` | `gradient` (`smooth`/`bands`/`stripes`) |
+| `repeat` | number \| `lines` | `1` | `gradient` (`'lines'` = one colour per text line) |
+| `size` | number (px) | `18` | `gradient` (stripe width, `mode: 'stripes'`) |
+| `animate` | boolean | `false` | `gradient` (lets the pattern flow along its direction) |
 | `texts` | string[] | from the field | `placeholder` (else `data-rte-placeholders`, else the placeholder) |
 | `deleteCps` | number | `45` | `placeholder` (deleting speed) |
 | `hold` | number (ms) | `1800` | `placeholder` (pause on the finished line) |
@@ -245,7 +288,7 @@ await fx.finished;  // resolves when the animation ends
 | `variant` | string | `shimmer` | `aura` |
 | `motion` | string | `float` | `aura` (`off`/`float`/`spin`) |
 | `width` | number | `4.5` | `aura` (aura width in line heights) |
-| `fit` | boolean | `true` | `aura` (scales the font so the figure fills the element) |
+| `fit` | boolean | `true` | `aura` (scales the font so the figure fills the element), `gradient` (spans the text, not the block) |
 | `ramp` | string | `·~oxX%$@` | `aura`, `asciiArt` |
 
 All other canvas effects take `speed` and `onDone`; font, colour and character grid

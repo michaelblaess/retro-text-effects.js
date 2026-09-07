@@ -22,6 +22,12 @@ export { waves } from './effects/waves.js';
 export { crt } from './effects/crt.js';
 export { colorshift } from './effects/colorshift.js';
 export { highlight } from './effects/highlight.js';
+export {
+  gradient,
+  gradientPalettes,
+  gradientDirections,
+  gradientModes,
+} from './effects/gradient.js';
 
 // Input effects: the only thing that changes is the placeholder attribute of a
 // form field - value, styling and layout of the field stay untouched.

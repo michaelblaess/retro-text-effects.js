@@ -41,6 +41,10 @@ var RetroTextEffects = (() => {
     errorcorrect: () => errorcorrect,
     expand: () => expand,
     fireworks: () => fireworks,
+    gradient: () => gradient,
+    gradientDirections: () => gradientDirections,
+    gradientModes: () => gradientModes,
+    gradientPalettes: () => gradientPalettes,
     highlight: () => highlight,
     laseretch: () => laseretch,
     matrix: () => matrix,
@@ -1260,6 +1264,168 @@ var RetroTextEffects = (() => {
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
+    return {
+      finished,
+      cancel() {
+        if (cancelled) {
+          return;
+        }
+        cancelled = true;
+        if (raf !== null) {
+          cancelAnimationFrame(raf);
+        }
+        restore();
+        resolveFinished();
+      }
+    };
+  }
+
+  // src/effects/gradient.js
+  var DIRECTIONS = {
+    down: 180,
+    up: 0,
+    right: 90,
+    left: 270,
+    diagonal: 135,
+    "diagonal-up": 45
+  };
+  var PALETTES = {
+    phosphor: ["#0f8f2e", "#33ff33", "#ccffcc"],
+    amber: ["#a35a00", "#ffb000", "#ffe9b0"],
+    ice: ["#2f6fb0", "#3fa7d6", "#d6f6ff"],
+    fire: ["#c02a4a", "#e4572e", "#ffa62b", "#ffef7a"],
+    toxic: ["#3f8f10", "#7cff00", "#e4ff9e"],
+    gold: ["#b08000", "#ffd700", "#fff6c0"],
+    copper: ["#8a4a1e", "#b87333", "#ffd9a0"],
+    sunset: ["#5b2b9e", "#7b2ff7", "#ff3c78", "#ff8c42"],
+    vaporwave: ["#05ffa1", "#01cdfe", "#b967ff", "#ff71ce"],
+    cyberpunk: ["#00f0ff", "#7a5cff", "#ff007a"],
+    rainbow: ["#ff3b30", "#ff9500", "#ffee00", "#33ff33", "#00cfff", "#6633ff", "#ff33cc"],
+    mono: ["#ffffff", "#5a5a5a"]
+  };
+  var gradientPalettes = Object.keys(PALETTES);
+  var gradientDirections = Object.keys(DIRECTIONS);
+  var gradientModes = ["smooth", "bands", "stripes"];
+  function resolveAngle(direction) {
+    if (typeof direction === "number" && Number.isFinite(direction)) {
+      return direction;
+    }
+    const named = DIRECTIONS[direction];
+    return named === void 0 ? DIRECTIONS.down : named;
+  }
+  function countLines(host) {
+    const text = (host.textContent || "").replace(/\n+$/, "");
+    return Math.max(1, text.split("\n").length);
+  }
+  function measureText(host) {
+    const range = document.createRange();
+    range.selectNodeContents(host);
+    const rect = range.getBoundingClientRect();
+    range.detach();
+    return { width: rect.width, height: rect.height };
+  }
+  function buildImage(angle, colors, mode, step, unit, offset) {
+    const stops = [];
+    const at = (value) => `${Math.round(value * 1e3) / 1e3}${unit}`;
+    if (mode === "smooth") {
+      for (let i = 0; i <= colors.length; i += 1) {
+        stops.push(`${colors[i % colors.length]} ${at(offset + i * step)}`);
+      }
+    } else {
+      for (let i = 0; i < colors.length; i += 1) {
+        const from = offset + i * step;
+        stops.push(`${colors[i]} ${at(from)}`);
+        stops.push(`${colors[i]} ${at(from + step)}`);
+      }
+    }
+    return `repeating-linear-gradient(${angle}deg, ${stops.join(", ")})`;
+  }
+  function fitToText(host, fit) {
+    if (!fit) {
+      return "100% 100%";
+    }
+    const size = measureText(host);
+    if (size.width <= 0 || size.height <= 0) {
+      return "100% 100%";
+    }
+    return `${Math.ceil(size.width)}px ${Math.ceil(size.height)}px`;
+  }
+  function gradient(target, options = {}) {
+    const host = resolveTarget(target);
+    const angle = resolveAngle(options.direction);
+    const mode = gradientModes.indexOf(options.mode) >= 0 ? options.mode : "smooth";
+    const speed = options.speed || 1;
+    const custom = Array.isArray(options.colors) && options.colors.length > 0 ? options.colors : null;
+    const colors = custom || PALETTES[options.palette] || PALETTES.phosphor;
+    const perLine = options.repeat === "lines";
+    const repeat = perLine ? countLines(host) : Math.max(1, Math.round(options.repeat || 1));
+    const stripes = mode === "stripes";
+    const unit = stripes ? "px" : "%";
+    const size = Math.max(1, options.size || 18);
+    let step;
+    if (stripes) {
+      step = size;
+    } else if (perLine) {
+      step = 100 / repeat;
+    } else {
+      step = 100 / repeat / colors.length;
+    }
+    const cycle = step * colors.length;
+    const rate = (stripes ? 60 : 20) * speed;
+    const previous = {
+      backgroundImage: host.style.backgroundImage,
+      backgroundSize: host.style.backgroundSize,
+      backgroundOrigin: host.style.backgroundOrigin,
+      backgroundRepeat: host.style.backgroundRepeat,
+      backgroundPosition: host.style.backgroundPosition,
+      backgroundClip: host.style.backgroundClip,
+      webkitBackgroundClip: host.style.webkitBackgroundClip,
+      webkitTextFillColor: host.style.webkitTextFillColor,
+      color: host.style.color
+    };
+    host.style.backgroundOrigin = "content-box";
+    host.style.backgroundSize = fitToText(host, options.fit !== false);
+    host.style.backgroundRepeat = "no-repeat";
+    host.style.backgroundPosition = "0 0";
+    host.style.backgroundClip = "text";
+    host.style.webkitBackgroundClip = "text";
+    host.style.webkitTextFillColor = "transparent";
+    host.style.color = "transparent";
+    host.style.backgroundImage = buildImage(angle, colors, mode, step, unit, 0);
+    let raf = null;
+    let cancelled = false;
+    let start = 0;
+    let resolveFinished;
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    function restore() {
+      host.style.backgroundImage = previous.backgroundImage;
+      host.style.backgroundSize = previous.backgroundSize;
+      host.style.backgroundOrigin = previous.backgroundOrigin;
+      host.style.backgroundRepeat = previous.backgroundRepeat;
+      host.style.backgroundPosition = previous.backgroundPosition;
+      host.style.backgroundClip = previous.backgroundClip;
+      host.style.webkitBackgroundClip = previous.webkitBackgroundClip;
+      host.style.webkitTextFillColor = previous.webkitTextFillColor;
+      host.style.color = previous.color;
+    }
+    function tick(now) {
+      if (cancelled) {
+        return;
+      }
+      if (start === 0) {
+        start = now;
+      }
+      const offset = (now - start) / 1e3 * rate % cycle;
+      host.style.backgroundImage = buildImage(angle, colors, mode, step, unit, offset);
+      raf = requestAnimationFrame(tick);
+    }
+    if (options.animate === true) {
+      raf = requestAnimationFrame(tick);
+    } else if (options.onDone) {
+      options.onDone();
+    }
     return {
       finished,
       cancel() {

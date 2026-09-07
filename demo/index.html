@@ -151,6 +151,10 @@
             <button data-fx="thunderstorm" data-target="#log">thunderstorm</button>
             <button data-fx="colorshift" data-target="#log">colorshift</button>
             <button data-fx="highlight" data-target="#log">highlight</button>
+            <button data-fx="gradient" data-target="#log" data-opts='{&quot;direction&quot;:&quot;down&quot;,&quot;palette&quot;:&quot;amber&quot;}'>gradient down</button>
+            <button data-fx="gradient" data-target="#log" data-opts='{&quot;direction&quot;:&quot;right&quot;,&quot;palette&quot;:&quot;vaporwave&quot;}'>gradient right</button>
+            <button data-fx="gradient" data-target="#log" data-opts='{&quot;direction&quot;:&quot;down&quot;,&quot;mode&quot;:&quot;bands&quot;,&quot;palette&quot;:&quot;rainbow&quot;,&quot;repeat&quot;:&quot;lines&quot;}'>gradient bands</button>
+            <button data-fx="gradient" data-target="#log" data-opts='{&quot;direction&quot;:&quot;diagonal&quot;,&quot;mode&quot;:&quot;stripes&quot;,&quot;palette&quot;:&quot;cyberpunk&quot;,&quot;animate&quot;:true}'>gradient stripes</button>
           </div>
         </header>
         <pre id="log">=== Link scan started ===
@@ -212,6 +216,10 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
             <button data-fx="thunderstorm" data-target="#banner">thunderstorm</button>
             <button data-fx="colorshift" data-target="#banner">colorshift</button>
             <button data-fx="highlight" data-target="#banner">highlight</button>
+            <button data-fx="gradient" data-target="#banner" data-opts='{&quot;direction&quot;:&quot;down&quot;,&quot;palette&quot;:&quot;amber&quot;}'>gradient down</button>
+            <button data-fx="gradient" data-target="#banner" data-opts='{&quot;direction&quot;:&quot;right&quot;,&quot;palette&quot;:&quot;vaporwave&quot;}'>gradient right</button>
+            <button data-fx="gradient" data-target="#banner" data-opts='{&quot;direction&quot;:&quot;down&quot;,&quot;mode&quot;:&quot;bands&quot;,&quot;palette&quot;:&quot;rainbow&quot;,&quot;repeat&quot;:&quot;lines&quot;}'>gradient bands</button>
+            <button data-fx="gradient" data-target="#banner" data-opts='{&quot;direction&quot;:&quot;diagonal&quot;,&quot;mode&quot;:&quot;stripes&quot;,&quot;palette&quot;:&quot;cyberpunk&quot;,&quot;animate&quot;:true}'>gradient stripes</button>
           </div>
         </header>
         <pre id="banner">+----------------------------------------------+
@@ -301,7 +309,11 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
             }
             el.textContent = originals.get(el);
             var fx = window.RetroTextEffects[btn.dataset.fx];
-            running.set(el, fx(el, { speed: 1 }));
+            var opts = { speed: 1 };
+            if (btn.dataset.opts) {
+              Object.assign(opts, JSON.parse(btn.dataset.opts));
+            }
+            running.set(el, fx(el, opts));
           });
         });
       })();

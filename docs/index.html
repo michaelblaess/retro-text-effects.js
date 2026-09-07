@@ -139,7 +139,7 @@
   <section class="hero">
     <div class="hero-badge"><span class="dot"></span> Open Source · Zero dependencies · v0.7.1</div>
     <h1>retro-text-effects<span class="accent">.js</span></h1>
-    <p class="hero-description">A <strong>browser port of <a href="https://github.com/ChrisBuilds/terminaltexteffects" style="color: var(--accent);">TerminalTextEffects (TTE)</a></strong>, the Python terminal-effects library - rebuilt in vanilla JavaScript. Forty-four text, canvas, style, input and art effects, no dependencies, no external requests, one self-contained file you can drop into any page.</p>
+    <p class="hero-description">A <strong>browser port of <a href="https://github.com/ChrisBuilds/terminaltexteffects" style="color: var(--accent);">TerminalTextEffects (TTE)</a></strong>, the Python terminal-effects library - rebuilt in vanilla JavaScript. Forty-five text, canvas, style, input and art effects, no dependencies, no external requests, one self-contained file you can drop into any page.</p>
     <div class="hero-actions">
       <a href="#demo" class="btn btn-primary">See it live</a>
       <a href="https://github.com/michaelblaess/retro-text-effects.js" class="btn btn-secondary">
@@ -212,6 +212,10 @@
         <span class="fx-label">style</span>
         <button class="fx-btn" onclick="runFx('highlight', '#demo-banner')">highlight</button>
         <button class="fx-btn" onclick="runFx('colorshift', '#demo-banner')">colorshift</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-banner', {direction: 'down', palette: 'amber'})">gradient down</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-banner', {direction: 'right', palette: 'vaporwave'})">gradient right</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-banner', {direction: 'down', mode: 'bands', palette: 'rainbow', repeat: 'lines'})">gradient bands</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-banner', {direction: 'diagonal', mode: 'stripes', palette: 'cyberpunk', animate: true})">gradient stripes</button>
         <button class="fx-switch" onclick="toggleCrt('#demo-banner', this)" aria-label="CRT-Modus umschalten"></button>
         <span class="fx-switch-hint">crt - persistent screen mode, flip it on and off</span>
       </div>
@@ -283,6 +287,10 @@
         <span class="fx-label">style</span>
         <button class="fx-btn" onclick="runFx('highlight', '#demo-log')">highlight</button>
         <button class="fx-btn" onclick="runFx('colorshift', '#demo-log')">colorshift</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-log', {direction: 'down', palette: 'amber'})">gradient down</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-log', {direction: 'right', palette: 'vaporwave'})">gradient right</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-log', {direction: 'down', mode: 'bands', palette: 'rainbow', repeat: 'lines'})">gradient bands</button>
+        <button class="fx-btn" onclick="runFx('gradient', '#demo-log', {direction: 'diagonal', mode: 'stripes', palette: 'cyberpunk', animate: true})">gradient stripes</button>
         <button class="fx-switch" onclick="toggleCrt('#demo-log', this)" aria-label="CRT-Modus umschalten"></button>
         <span class="fx-switch-hint">crt - persistent screen mode, flip it on and off</span>
       </div>
@@ -396,7 +404,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
   <section class="section" id="effects">
     <div class="section-label">Effects</div>
     <h2 class="section-title">Forty-four effects, five flavours</h2>
-    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. <strong>Style effects</strong> (crt, colorshift, highlight) recolour or light the element in place without touching the text. <strong>Input effects</strong> (placeholder) run inside a form field and rewrite nothing but its placeholder attribute. <strong>Art effects</strong> (aura) are the exception: they generate the text from a Unicode glyph instead of reading it from the page. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
+    <p class="section-description"><strong>Text effects</strong> rewrite the element's text content - no canvas, the text stays selectable. <strong>Canvas effects</strong> lay a temporary canvas over the element for free 2D character motion, then fade out to reveal the untouched text. <strong>Style effects</strong> (crt, colorshift, highlight, gradient) recolour or light the element in place without touching the text. <strong>Input effects</strong> (placeholder) run inside a form field and rewrite nothing but its placeholder attribute. <strong>Art effects</strong> (aura) are the exception: they generate the text from a Unicode glyph instead of reading it from the page. The <code style="color: var(--accent);">*2</code> effects are canvas twins of their text counterparts.</p>
 
     <h3 style="font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 32px 0 12px;">Text effects (no canvas)</h3>
     <div class="api-table-wrap">
@@ -460,6 +468,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>crt</code></td><td>Persistent CRT treatment: glow, scanlines, flicker. Toggle on, <code>cancel()</code> removes it.</td></tr>
           <tr><td><code>colorshift</code></td><td>Persistent animated gradient that keeps sliding across the glyphs. <code>cancel()</code> removes it.</td></tr>
           <tr><td><code>highlight</code></td><td>Runs a single specular highlight across the text, then restores the original colours.</td></tr>
+          <tr><td><code>gradient</code></td><td>Paints a colour gradient across the glyphs - top to bottom, left to right, diagonal or at a free angle, as a smooth blend, hard bands or stripes. Twelve palettes, optionally flowing. <code>cancel()</code> removes it.</td></tr>
         </tbody>
       </table>
     </div>
@@ -544,7 +553,14 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
           <tr><td><code>variant</code></td><td>string</td><td><code>shimmer</code></td><td>aura</td></tr>
           <tr><td><code>motion</code></td><td>string</td><td><code>float</code></td><td>aura</td></tr>
           <tr><td><code>width</code></td><td>number</td><td><code>4.5</code></td><td>aura</td></tr>
-          <tr><td><code>fit</code></td><td>boolean</td><td><code>true</code></td><td>aura</td></tr>
+          <tr><td><code>fit</code></td><td>boolean</td><td><code>true</code></td><td>aura, gradient</td></tr>
+          <tr><td><code>direction</code></td><td>string | number</td><td><code>down</code></td><td>gradient, highlight</td></tr>
+          <tr><td><code>palette</code></td><td>string</td><td><code>phosphor</code></td><td>gradient</td></tr>
+          <tr><td><code>colors</code></td><td>string[]</td><td>from the palette</td><td>gradient, colorshift</td></tr>
+          <tr><td><code>mode</code></td><td>string</td><td><code>smooth</code></td><td>gradient</td></tr>
+          <tr><td><code>repeat</code></td><td>number | <code>lines</code></td><td><code>1</code></td><td>gradient</td></tr>
+          <tr><td><code>size</code></td><td>number (px)</td><td><code>18</code></td><td>gradient</td></tr>
+          <tr><td><code>animate</code></td><td>boolean</td><td><code>false</code></td><td>gradient</td></tr>
         </tbody>
       </table>
     </div>
@@ -564,7 +580,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
       <span class="stack-badge">Zero dependencies</span>
       <span class="stack-badge">esbuild</span>
       <span class="stack-badge">Single file</span>
-      <span class="stack-badge">~45 KB minified</span>
+      <span class="stack-badge">~49 KB minified</span>
     </div>
   </section>
 
@@ -586,7 +602,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
     var originals = new WeakMap();
     var active = new WeakMap();
 
-    function runFx(fx, selector) {
+    function runFx(fx, selector, opts) {
       if (typeof RetroTextEffects === 'undefined' || !RetroTextEffects[fx]) {
         return;
       }
@@ -602,7 +618,7 @@ domains scanned: 14   found: 4   repaired: 4   errors: 0</pre>
         running.cancel();
       }
       el.textContent = originals.get(el);
-      active.set(el, RetroTextEffects[fx](el));
+      active.set(el, RetroTextEffects[fx](el, opts || {}));
     }
 
     // crt is persistent, so it toggles on/off and keeps its handle per element.
