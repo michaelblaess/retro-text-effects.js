@@ -7,6 +7,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/banner.jpg" alt="retro-text-effects.js - der Titel im Amber-Verlauf über drei Effekten mitten in der Animation" width="100%">
+</p>
+
 Ein **Browser-Port von [TerminalTextEffects (TTE)](https://github.com/ChrisBuilds/terminaltexteffects)**,
 der Python-Terminal-Effekt-Bibliothek - neu gebaut in abhängigkeitsfreiem Vanilla-JavaScript,
 ausgeliefert als eine einzige Datei, die du in jede Seite einbinden kannst.

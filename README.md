@@ -7,6 +7,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/banner.jpg" alt="retro-text-effects.js - the title in an amber gradient above three effects mid-animation" width="100%">
+</p>
+
 A **browser port of [TerminalTextEffects (TTE)](https://github.com/ChrisBuilds/terminaltexteffects)**,
 the Python terminal-effects library - rebuilt in dependency-free vanilla JavaScript and
 shipped as a single file you can drop into any page.
